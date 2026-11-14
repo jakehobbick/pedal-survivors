@@ -130,6 +130,7 @@ export function openSettings(stack = false) {
       <div class="field"><label>Max heart rate</label><input type="number" id="s-hr" min="120" max="230" value="${settings.maxHr}"></div>
       <h3>Trainer</h3>
       <div class="field"><label>Interval resistance</label><select id="s-int"><option value="erg">ERG (trainer holds target)</option><option value="gears">Virtual gears (+25% Surge)</option></select></div>
+      <div class="field"><label>Virtual gears drive the trainer by</label><select id="s-gmode"><option value="erg-curve">ERG curve (gear + cadence → watts)</option><option value="grade">Simulated grade (trainer's own feel)</option></select></div>
       <div class="field"><label>Virtual gear feel <small class="note">(cadence exponent)</small></label><select id="s-curve"><option value="1.3">Light (1.3)</option><option value="1.6">Default (1.6)</option><option value="2">Road-like (2.0)</option><option value="2.5">Heavy (2.5)</option></select></div>
       <h3>Controls</h3>
       <div class="field"><label>Steering</label><select id="s-steer"><option value="8way">8-direction (D-pad sets heading)</option><option value="turn">Turn (left/right rotates)</option></select></div>
@@ -159,6 +160,7 @@ export function openSettings(stack = false) {
   $<HTMLInputElement>('s-hr').onchange = (e) => { settings.maxHr = Math.max(120, Math.min(230, +(e.target as HTMLInputElement).value || 190)); saveSettings(); };
   sel('s-int', settings.intervalMode, (v) => settings.intervalMode = v as any);
   sel('s-curve', String(settings.gearCurve), (v) => settings.gearCurve = +v);
+  sel('s-gmode', settings.gearMode, (v) => settings.gearMode = v as any);
   sel('s-steer', settings.steer, (v) => settings.steer = v as any);
   sel('s-auto', settings.autopilot ? '1' : '0', (v) => settings.autopilot = v === '1');
   sel('s-pick', String(settings.autoPick), (v) => settings.autoPick = +v);

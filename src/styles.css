@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Bungee&family=M+PLUS+Rounded+1c:wght@500;700;800&family=Rajdhani:wght@600;700&display=swap');
 
 :root {
   --bg: #0b0716;
@@ -129,7 +128,7 @@ table.stats td:last-child { text-align: right; font-family: var(--num); font-wei
 .abil.ready { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 209, 102, .6); }
 .abil small { position: absolute; bottom: 3px; font-size: 11px; font-family: var(--ui); font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000; }
 #banner { position: fixed; left: 50%; top: 24%; transform: translate(-50%, -50%); z-index: 15; text-align: center; pointer-events: none; font-family: var(--title);
-  font-size: clamp(26px, 4.6vw, 54px); color: #fff; text-shadow: 0 4px 0 #3a1240, 0 0 30px rgba(255, 93, 143, .8); opacity: 0; transition: opacity .3s; white-space: nowrap; }
+  font-size: clamp(24px, 3.6vw, 46px); line-height: 1.05; width: min(94vw, 1100px); color: #fff; text-shadow: 0 4px 0 #3a1240, 0 0 30px rgba(255, 93, 143, .8); opacity: 0; transition: opacity .3s; }
 #banner small { display: block; font-family: var(--ui); font-weight: 800; font-size: clamp(15px, 2.2vw, 24px); color: var(--gold); text-shadow: 0 2px 4px #000; margin-top: 6px; white-space: normal; }
 #banner.on { opacity: 1; animation: bannerIn .45s cubic-bezier(.2, 1.6, .4, 1); }
 @keyframes bannerIn { from { transform: translate(-50%, -50%) scale(1.6); } to { transform: translate(-50%, -50%) scale(1); } }

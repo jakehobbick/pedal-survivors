@@ -54,3 +54,29 @@ export function initInput() {
   });
   addEventListener('blur', () => { for (const a of ACTIONS) input.held[a] = false; });
 }
+
+/* ---------- Gamepad API (standard mapping) — some controller bridges present as gamepads ---------- */
+const PAD_MAP: [number, Action][] = [[12, 'up'], [13, 'down'], [14, 'left'], [15, 'right'], [0, 'confirm'], [1, 'dash'], [2, 'ult'], [3, 'ult'], [4, 'shiftDown'], [5, 'shiftUp'], [6, 'shiftDown'], [7, 'shiftUp'], [9, 'pause'], [8, 'pause']];
+const padPrev = new Uint8Array(32);
+let padStick = false;
+export function pollGamepads() {
+  const pads = (navigator.getGamepads ? navigator.getGamepads() : []) as (Gamepad | null)[];
+  for (const gp of pads) {
+    if (!gp || !gp.connected) continue;
+    for (const [bi, a] of PAD_MAP) {
+      const b = gp.buttons[bi]; if (!b) continue;
+      const down = b.pressed ? 1 : 0;
+      if (down && !padPrev[bi]) {
+        input.downAt[a] = performance.now();
+        if (!(input.menu && input.menu(a))) input.presses[a]++;
+        if (a === 'up' || a === 'down' || a === 'left' || a === 'right') input.lastSteer = performance.now();
+      }
+      if (down !== padPrev[bi]) input.held[a] = !!down;
+      padPrev[bi] = down;
+    }
+    const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+    if (Math.hypot(ax, ay) > 0.35) { input.joy.active = true; input.joy.x = ax; input.joy.y = ay; padStick = true; input.lastSteer = performance.now(); }
+    else if (padStick) { input.joy.active = false; input.joy.x = input.joy.y = 0; padStick = false; }
+    break;
+  }
+}

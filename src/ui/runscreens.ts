@@ -125,7 +125,7 @@ export const runUI: RunUI = {
         <button class="btn sec" id="pa-tcx">⬇ Save ride so far (.tcx)</button>
         <button class="btn sec" id="pa-end">🏁 End run now</button>
       </div>`, 'glass');
-    el.querySelector<HTMLButtonElement>('#pa-res')!.onclick = () => { closeAll(); game.paused = false; };
+    el.querySelector<HTMLButtonElement>('#pa-res')!.onclick = () => { closeAll(); };
     el.querySelector<HTMLButtonElement>('#pa-set')!.onclick = () => openSettings(true);
     el.querySelector<HTMLButtonElement>('#pa-tcx')!.onclick = () => exportRideNow();
     el.querySelector<HTMLButtonElement>('#pa-end')!.onclick = () => {

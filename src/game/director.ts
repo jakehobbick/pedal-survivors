@@ -44,7 +44,7 @@ export class Director {
     }
     // groups (swarm packs)
     this.groupT -= dt;
-    if (this.groupT <= 0) { this.groupT = this.kind === 'swarm' ? 3 : 11 - Math.min(5, m * 0.2); if (w.enemies.n < cap + 30) this.spawnGroup(); }
+    if (this.groupT <= 0) { this.groupT = this.kind === 'swarm' ? 3 : this.kind === 'calm' ? 18 : 11 - Math.min(5, m * 0.2); if (w.enemies.n < cap + 20) this.spawnGroup(); }
     // elites
     this.eliteT -= dt;
     if (this.eliteT <= 0 && this.kind !== 'calm' && this.kind !== 'boss') {

@@ -39,7 +39,7 @@ export const WEAPONS: WeaponDef[] = [
   {
     id: 'bell', name: 'Bell Ring', behavior: 'aura', color: '#ffe08a',
     desc: 'Ding! A shockwave that pushes the horde back.',
-    base: W({ dmg: 11, cd: 1.6, aoe: 100, knock: 150 }),
+    base: W({ dmg: 14, cd: 1.35, aoe: 112, knock: 80 }),
     levels: [['+20% radius', { aoe: 20 }], ['+6 damage', { dmg: 6 }], ['−0.25 s cooldown', { cd: -0.25 }], ['+20% radius', { aoe: 20 }], ['+9 damage', { dmg: 9 }]],
     evo: { with: 'chamois', into: 'chime' },
   },

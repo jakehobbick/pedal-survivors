@@ -103,8 +103,11 @@ export function updateHud(w: World, wk: WorkoutRuntime | null, force = false) {
   el['h-gear'].style.display = showGear ? '' : 'none';
   if (showGear) {
     el['hg-n'].textContent = String(trainer.gear);
-    el['hg-sub'].textContent = `${Math.round(gearWatts(90))} W @90 · ${GEARS}`;
-    if (wk && wk.targetBand()) { const t = wk.targetBand()!; const r = rpmFor(((t[0] + Math.min(t[1], t[0] * 1.2)) / 2) * ftp); el['hg-sub'].textContent += ` · target ${Math.round(r)} rpm`; }
+    el['hg-sub'].textContent = `${Math.round(gearWatts(90))} W @90 rpm`;
+    const c = sensors.cadSm; el['hg-n'].style.color = c > 108 ? '#ffd166' : c > 20 && c < 68 ? '#7fd1ff' : '';
+    if (c > 108) el['hg-sub'].textContent = '⬆ shift up'; else if (c > 20 && c < 68) el['hg-sub'].textContent = '⬇ shift down';
+    if (wk && wk.targetBand() && c >= 68 && c <= 108) { const t = wk.targetBand()!; const r = rpmFor(((t[0] + Math.min(t[1], t[0] * 1.2)) / 2) * ftp); el['hg-sub'].textContent = `target ≈ ${Math.round(r)} rpm`; }
+    void GEARS;
   }
   el['hr-gold'].textContent = String(w.stats.gold);
   el['hr-kills'].textContent = String(w.stats.kills);

@@ -244,18 +244,31 @@ function ultUpdate(dt: number) {
   }
 }
 
+let pausedTrainer: { mode: 'erg' | 'gear'; erg: number } | null = null;
+/** after a pause, put the resistance back where the workout wants it */
+export function resumeTrainer() {
+  const wk = game.wk; if (!wk || game.state !== 'run') return;
+  const ph = game.boss.phase;
+  if (ph === 'intro' || ph === 'sprint') setGearMode();
+  else if (ph === 'fight') setErg(0.78);
+  else if (ph === 'recover') setErg(0.55);
+  else if (pausedTrainer && wk.step.kind === 'boss') { if (pausedTrainer.mode === 'erg') setErg(pausedTrainer.erg); else setGearMode(); }
+  else applyTrainer(wk.step);
+  pausedTrainer = null;
+}
 export function togglePause(on?: boolean) {
   if (game.state !== 'run') return;
   const v = on ?? !game.paused; if (v === game.paused) return;
   game.paused = v;
-  if (v) { game.ui.openPause(); music.duck(true); } else { music.duck(false); }
+  if (v) { pausedTrainer = { mode: trainer.mode, erg: trainer.ergFrac }; setErg(0.45); game.ui.openPause(); music.duck(true); }
+  else { music.duck(false); resumeTrainer(); }
 }
 
 /** per-frame update; dt is real seconds (already scaled by debug time scale) */
 export function updateGame(dt: number) {
   if (game.state !== 'run') return;
   const W = game.world, wk = game.wk!, P = W.player;
-  if (game.paused) { updateHud(W, wk); return; }
+  if (game.paused) { if (!hasScreen() && !game.btPaused) { game.paused = false; music.duck(false); resumeTrainer(); } updateHud(W, wk); return; }
   // input
   if (consume('pause')) { togglePause(true); return; }
   if (consume('dash')) useDash();

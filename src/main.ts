@@ -1,5 +1,11 @@
+import '@fontsource/bungee/latin-400.css';
+import '@fontsource/rajdhani/latin-600.css';
+import '@fontsource/rajdhani/latin-700.css';
+import '@fontsource/m-plus-rounded-1c/latin-500.css';
+import '@fontsource/m-plus-rounded-1c/latin-700.css';
+import '@fontsource/m-plus-rounded-1c/latin-800.css';
 import './styles.css';
-import { initInput } from './core/input';
+import { initInput, pollGamepads } from './core/input';
 import { settings, saveSettings } from './core/settings';
 import { updateSensors, sensors } from './trainer/sensors';
 import { simTick, sim } from './trainer/sim';
@@ -55,6 +61,7 @@ function frame(now: number) {
   const dtReal = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
   const dt = dtReal * dbg.timeScale;
   const running = game.state === 'run';
+  pollGamepads();
   simTick(running && !game.paused ? dt : dtReal);
   updateSensors(running ? dt : dtReal);
   trainerTick();
