@@ -1,81 +1,94 @@
 import './styles.css';
-import { initInput, input } from './core/input';
-import { settings, saveSettings, FTP } from './core/settings';
-import { clamp } from './core/math';
-import { sensors, updateSensors } from './trainer/sensors';
+import { initInput } from './core/input';
+import { settings, saveSettings } from './core/settings';
+import { updateSensors, sensors } from './trainer/sensors';
 import { simTick, sim } from './trainer/sim';
-import { trainer, setErg } from './trainer/control';
+import { trainer, trainerTick } from './trainer/control';
 import { initSimPanel, updateSimPanel } from './ui/simpanel';
 import { dbg, dbgFrame } from './ui/debug';
-import { openScreen, closeAll } from './ui/ui';
-import { buildArenaArt, drawGround } from './art/arena';
-import { buildRiderSheet } from './art/rider';
-import { CHARACTERS } from './data/characters';
+import { showGallery } from './ui/gallery';
+import { closeAll } from './ui/ui';
+import { initHud } from './ui/hud';
+import { initTouch } from './ui/touch';
+import { openTitle } from './ui/screens';
+import { game, updateGame, startRun } from './game/game';
+import { renderWorld, ensureArenaArt } from './game/render';
+import { particleCount } from './game/fx';
+import { buildFxArt } from './art/fxart';
+import './ui/runscreens';
+import { initAudio } from './audio/sfx';
+import { initBle } from './trainer/ble';
+import { ARENA_BY_ID } from './data/arenas';
 
 const cv = document.getElementById('cv') as HTMLCanvasElement;
 const ctx = cv.getContext('2d', { alpha: false })!;
-let W = 0, H = 0, DPR = 1;
+let W = 0, H = 0, DPR = 1, autoScale = Math.min(window.devicePixelRatio || 1, 2);
+function targetDPR() { return settings.renderScale > 0 ? Math.min(settings.renderScale, Math.max(1, window.devicePixelRatio || 1)) : autoScale; }
 function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, 2);
-  W = innerWidth; H = innerHeight;
+  DPR = targetDPR(); W = innerWidth; H = innerHeight;
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
 }
 addEventListener('resize', resize); resize();
-initInput(); initSimPanel();
+initInput(); initSimPanel(); initHud(); initTouch(); initBle();
+buildFxArt();
+addEventListener('pointerdown', () => initAudio(), { once: true });
+addEventListener('keydown', () => initAudio(), { once: true });
+game.world.reset(ARENA_BY_ID.sakura);
 
-const arena = buildArenaArt('sakura');
-const sheet = buildRiderSheet(CHARACTERS[0].look);
-const P = { x: 0, y: 0, hx: 1, hy: 0, anim: 0, face: 1 };
-let playing = false;
+(window as any).__ps = {
+  toggleDebug: () => { settings.debug = !settings.debug; saveSettings(); },
+  sensors, sim, trainer, dbg, game, startRun, settings, closeAll,
+};
 
-function title() {
-  const el = openScreen(`
-    <div class="logo">PEDAL<br>SURVIVORS</div>
-    <div class="tag">A smart-trainer horde survival game · milestone 1 preview</div>
-    <div class="panel mid col">
-      <p class="note">Scaffold build: ride around with the simulated trainer (watts slider, or press <kbd>B</kbd> for the bot). Steer with <kbd>WASD</kbd>/arrows. Toggle the debug overlay with <kbd>\`</kbd>.</p>
-      <div class="row"><button class="btn" data-default id="go">Ride (simulated trainer)</button></div>
-    </div>`);
-  el.querySelector<HTMLButtonElement>('#go')!.onclick = () => { closeAll(); playing = true; setErg(0.6); };
-}
-title();
-
-(window as any).__ps = { toggleDebug: () => { settings.debug = !settings.debug; saveSettings(); }, sensors, sim, trainer, dbg };
-
-let last = performance.now();
-function frame(now: number) {
-  const t0 = performance.now();
-  const dtReal = Math.min(0.05, (now - last) / 1000); last = now;
-  const dt = dtReal * dbg.timeScale;
-  simTick(dtReal); updateSensors(dtReal);
-  if (playing) {
-    let dx = (input.held.right ? 1 : 0) - (input.held.left ? 1 : 0), dy = (input.held.down ? 1 : 0) - (input.held.up ? 1 : 0);
-    if (dx || dy) { const l = Math.hypot(dx, dy); P.hx = dx / l; P.hy = dy / l; }
-    const pct = sensors.p3 / FTP();
-    const sp = 230 * (0.35 + 0.65 * clamp(pct, 0, 1) + 0.5 * clamp(pct - 1, 0, 0.8));
-    P.x += P.hx * sp * dt; P.y += P.hy * sp * dt;
-    if (Math.abs(P.hx) > 0.2) P.face = P.hx > 0 ? 1 : -1;
-    P.anim += dt * (sensors.cadSm / 60) * 8;
-  }
-  // draw
-  const zoom = Math.min(W, H) / 720;
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  ctx.fillStyle = '#0b0716'; ctx.fillRect(0, 0, W, H);
-  ctx.setTransform(DPR * zoom, 0, 0, DPR * zoom, DPR * (W / 2 - P.x * zoom), DPR * (H / 2 - P.y * zoom));
-  drawGround(ctx, arena, P.x, P.y, W / zoom + 4, H / zoom + 4);
-  const f = sensors.cadSm > 5 ? sheet.run[Math.floor(P.anim) % 8] : sheet.idle[Math.floor(now / 300) % 4];
-  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(P.x, P.y, 30, 7, 0, 0, 7); ctx.fill();
-  ctx.save(); ctx.translate(P.x, P.y); ctx.scale(P.face, 1); ctx.drawImage(f.c, -f.ax, -f.ay, f.w, f.h); ctx.restore();
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  if (playing) {
-    ctx.fillStyle = 'rgba(12,6,26,.75)'; ctx.fillRect(10, 10, 220, 74);
-    ctx.fillStyle = '#fff'; ctx.font = '700 34px Rajdhani, sans-serif'; ctx.fillText(`${Math.round(sensors.p3)} W`, 20, 46);
-    ctx.font = '700 18px Rajdhani, sans-serif'; ctx.fillStyle = '#b7a6d6';
-    ctx.fillText(`${Math.round(sensors.p3 / FTP() * 100)}% FTP · ${Math.round(sensors.cadSm)} rpm · ${sensors.hr || '--'} bpm`, 20, 72);
-  }
-  updateSimPanel(playing);
-  dbg.counts = { enemies: 0, projectiles: 0 };
-  dbgFrame(dtReal, performance.now() - t0);
+if (location.search.includes('gallery')) { setTimeout(() => showGallery(ctx, W, H, DPR), 200); }
+else {
+  openTitle();
+  ensureArenaArt('sakura');
   requestAnimationFrame(frame);
 }
-requestAnimationFrame(frame);
+
+let menuX = 0;
+let last = performance.now();
+let slowT = 0, fastT = 0;
+function frame(now: number) {
+  const t0 = performance.now();
+  const dtReal = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  const dt = dtReal * dbg.timeScale;
+  const running = game.state === 'run';
+  simTick(running && !game.paused ? dt : dtReal);
+  updateSensors(running ? dt : dtReal);
+  trainerTick();
+  if (running) {
+    updateGame(dt);
+    if (game.state === 'run') renderWorld(ctx, game.world, W, H, DPR, now);
+  } else {
+    menuX += dtReal * 40;
+    renderBackdrop();
+  }
+  updateSimPanel(running);
+  dbg.counts.particles = particleCount();
+  const work = performance.now() - t0;
+  dbgFrame(dtReal, work);
+  // adaptive resolution (Auto): drop when frames run long, recover when there is headroom
+  if (settings.renderScale === 0 && running) {
+    if (dtReal > 1 / 50) { slowT += dtReal; fastT = 0; } else if (dtReal < 1 / 58) { fastT += dtReal; slowT = Math.max(0, slowT - dtReal * 0.5); }
+    const max = Math.min(window.devicePixelRatio || 1, 2);
+    if (slowT > 2.5 && autoScale > 1) { autoScale = Math.max(1, +(autoScale - 0.25).toFixed(2)); slowT = 0; resize(); }
+    else if (fastT > 12 && autoScale < max) { autoScale = Math.min(max, +(autoScale + 0.25).toFixed(2)); fastT = 0; resize(); }
+  }
+  if (Math.abs(DPR - targetDPR()) > 0.01) resize();
+  dbg.extra = `dpr        ${DPR.toFixed(2)}\nsrc        ${sensors.src}${sim.bot ? ' (bot)' : ''}\ntrainer    ${trainer.mode} ${trainer.mode === 'erg' ? Math.round(trainer.ergFrac * settings.ftp) + 'W' : 'g' + trainer.gear}`;
+  requestAnimationFrame(frame);
+}
+function renderBackdrop() {
+  const id = game.opts?.arena || 'sakura';
+  const zoom = Math.min(W, H) / 900;
+  const cx = menuX, cy = Math.sin(menuX / 600) * 200;
+  ctx.setTransform(DPR * zoom, 0, 0, DPR * zoom, DPR * (W / 2 - cx * zoom), DPR * (H / 2 - cy * zoom));
+  const art = ensureArenaArt(id);
+  const T = art.tileSize; const vw = W / zoom, vh = H / zoom;
+  const x0 = Math.floor((cx - vw / 2) / T) * T, y0 = Math.floor((cy - vh / 2) / T) * T;
+  for (let y = y0; y < cy + vh / 2; y += T) for (let x = x0; x < cx + vw / 2; x += T) ctx.drawImage(art.tile, x, y, T + 0.5, T + 0.5);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = 'rgba(8,3,18,.5)'; ctx.fillRect(0, 0, W, H);
+}

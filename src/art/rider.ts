@@ -283,6 +283,6 @@ export function buildRiderSheet(look: RiderLook): RiderSheet {
   // portrait (bust), larger
   const P = 160; const pc = document.createElement('canvas'); pc.width = P; pc.height = P; const pg = pc.getContext('2d')!;
   pg.fillStyle = rad(pg, P / 2, P / 2, 10, P * 0.7, [[0, rgba(look.jersey, 0.55)], [1, 'rgba(10,5,20,0)']]); pg.fillRect(0, 0, P, P);
-  pg.save(); pg.scale(4.2, 4.2); pg.translate(-31, -1); drawRider(pg, look, 0.3, { bob: 0, t: 1, speed: 0.5 }); pg.restore();
+  pg.save(); pg.scale(3.6, 3.6); pg.translate(-30, 6); drawRider(pg, look, 0.3, { bob: 0, t: 1, speed: 0.5 }); pg.restore();
   return { run, idle, hit, portrait: pc };
 }

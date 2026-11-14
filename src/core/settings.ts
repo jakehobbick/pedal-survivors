@@ -24,6 +24,8 @@ export interface Settings {
   keys: Record<Action, [string, string]>;
   debug: boolean;
   hand: 'right' | 'left';
+  autoPick: number; // seconds before a level-up choice is auto-picked (0 = off)
+  renderScale: number; // 0 = auto
 }
 const DEF: Settings = {
   ftp: 250, maxHr: 190, weightKg: 75,
@@ -32,7 +34,7 @@ const DEF: Settings = {
   steer: '8way', autopilot: false,
   gearMode: 'erg-curve', intervalMode: 'erg', gearCurve: 1.6,
   keys: DEFAULT_KEYS,
-  debug: false, hand: 'right',
+  debug: false, hand: 'right', autoPick: 0, renderScale: 0,
 };
 function load(): Settings {
   const s = Object.assign({}, DEF, LS.get<Partial<Settings>>('settings', {}));

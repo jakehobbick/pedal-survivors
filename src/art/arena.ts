@@ -13,7 +13,7 @@ function sakuraTile(): HTMLCanvasElement {
   const N = 512; const [c, g] = mkCanvas(N, N); const R = seeded(11);
   g.fillStyle = lin(g, 0, 0, N, N, [[0, '#4f7d3a'], [0.5, '#5d8a40'], [1, '#4a7536']]); g.fillRect(0, 0, N, N);
   // mottled grass
-  for (let i = 0; i < 60; i++) { const x = R() * N, y = R() * N, r = 30 + R() * 70; for (const dx of [-N, 0, N]) for (const dy of [-N, 0, N]) { g.fillStyle = rad(g, x + dx, y + dy, 1, r, [[0, R() < 0.5 ? 'rgba(120,170,70,.35)' : 'rgba(30,60,30,.3)'], [1, 'rgba(0,0,0,0)']]); g.fillRect(x + dx - r, y + dy - r, r * 2, r * 2); } }
+  for (let i = 0; i < 60; i++) { const x = R() * N, y = R() * N, r = 30 + R() * 70; const col = R() < 0.5 ? 'rgba(120,170,70,.35)' : 'rgba(30,60,30,.3)'; for (const dx of [-N, 0, N]) for (const dy of [-N, 0, N]) { g.fillStyle = rad(g, x + dx, y + dy, 1, r, [[0, col], [1, 'rgba(0,0,0,0)']]); g.fillRect(x + dx - r, y + dy - r, r * 2, r * 2); } }
   // dirt road band (diagonal-ish, tileable horizontally)
   g.save(); g.globalAlpha = 0.9;
   for (let pass = 0; pass < 2; pass++) {

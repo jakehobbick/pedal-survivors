@@ -41,7 +41,7 @@ export class Recorder {
   c = new Uint8Array(Recorder.CAP);
   hr = new Uint8Array(Recorder.CAP);
   tgt = new Uint16Array(Recorder.CAP); // target watts (0 = none), for share card graph
-  n = 0;
+  n = 0; start = Date.now();
   private accum = 0;
   private pSum = 0; private cSum = 0; private hSum = 0; private cnt = 0; private hCnt = 0;
   reset() { this.n = 0; this.accum = 0; this.pSum = this.cSum = this.hSum = this.cnt = this.hCnt = 0; }
@@ -54,7 +54,7 @@ export class Recorder {
       this.accum -= 1;
       if (this.n < Recorder.CAP) {
         const i = this.n++;
-        this.t[i] = Date.now();
+        this.t[i] = this.start + i * 1000;
         this.p[i] = Math.round(this.cnt ? this.pSum / this.cnt : 0);
         this.c[i] = Math.min(255, Math.round(this.cnt ? this.cSum / this.cnt : 0));
         this.hr[i] = Math.min(255, Math.round(this.hCnt ? this.hSum / this.hCnt : 0));

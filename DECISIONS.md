@@ -10,3 +10,15 @@ Running log of judgment calls made during the autonomous build. Newest milestone
 - **Simulated trainer** (`src/trainer/sim.ts`): manual watts/cadence sliders, hold-to-sprint, and a bot. The bot follows the workout target with Ornstein–Uhlenbeck noise, random fades (to exercise the "missed target" path), auto-shifts virtual gears to hold ~90 rpm, and sprints when a boss shield is up. It emulates ERG lag (τ≈1.3 s) so ERG transitions look realistic. A crude HR model drives HR in sim so HR zones can be tested.
 - **Gameplay power = 3 s average** (10 Hz ring buffer). Instant power is only used for the sprint shield meter and the sim.
 - **Debug overlay**: backquote key, or `Settings → Debug overlay`. Alt+1..6 sets a time scale (x1/x2/x4/x8/x16/x0.25) for fast play-testing.
+
+## Milestone 2 — core loop
+
+- **View & scale:** world units ≈ CSS px at 760-unit view height. Camera leads ~70 units in the heading direction so you see what you're riding into.
+- **Movement = power.** Speed = 225 × (0.35 + 0.65·min(p,1) + 0.5·clamp(p−1, 0, 0.8)) where p = 3 s power / FTP. You never fully stop (35% "coast") because a stalled rider in a horde game is just a death sentence.
+- **Attack rate = power.** 55% at 0 W → 100% at FTP → 160% at 2.2×FTP. Cadence 85–100 rpm adds +10% crit.
+- **Steering:** the bike always rolls; the D-pad *sets the heading* (8-way) and the heading persists after release, so tap-only controllers work. An alternative "turn" mode rotates the heading. Optional autopilot (also on whenever the bot rides) steers away from crowds and toward loot when you haven't steered for 1.2 s.
+- **Death never ends the run** (the spec says missing targets never ends a run; I extended that to HP). At 0 HP you get knocked down for ~4.5 s, enemies are shoved back, you lose the current level's XP progress, then "Second Wind" revives you at 50% HP. Falls are tracked (achievements reward deathless runs).
+- **Menus don't pause the world**; it runs at 6% speed and you're invulnerable while a level-up/chest/shop menu is open. The workout clock keeps running because your legs are.
+- **XP curve** `xp(L) = 10 + 7L (+ a late-game term)`, tuned with bot runs so a 30-min run reaches level ~30–35.
+- **Pools + spatial hash:** every entity type is preallocated, flagged dead during the frame and swap-compacted once at the end, so spatial-hash indices stay valid all frame. Queries de-duplicate with a per-enemy stamp (no Set allocations). Particles and damage numbers are struct-of-arrays.
+- **Gems** get a gentle vacuum inside 2× pickup range, and gems past 900 merge into existing ones to cap counts.
