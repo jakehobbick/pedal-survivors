@@ -48,6 +48,8 @@ export function initHud() {
     <div class="abil" id="ha-dash">💨<div class="cd" id="ha-dashcd"></div><small id="ha-dashk">DASH</small></div>
     <div class="abil" id="ha-ult">✨<div class="cd" id="ha-ultcd"></div><small id="ha-ultk">ULT</small></div>
   </div>
+  <div class="box" id="h-boss" style="display:none"><div class="lbl" id="hb-name" style="color:#ff9ec0;font-size:15px"></div><div class="bbar"><i id="hb-hp"></i></div><div class="bbar shield" id="hb-shw"><i id="hb-sh"></i></div></div>
+  <div id="h-sprint" style="display:none"><div class="st">⚡ BREAK THE SHIELD ⚡</div><div class="sw"><span id="hs-w">0</span> W <small>/ ≥ <span id="hs-t">0</span> W</small></div><div class="sbar"><i id="hs-sh"></i></div><div class="lbl" id="hs-left"></div></div>
   <div class="box" id="h-xp"><i id="hx"></i></div>
   <div id="h-lv">LV 1</div>`;
   root.querySelectorAll<HTMLElement>('[id]').forEach((e) => (el[e.id] = e));
@@ -61,6 +63,26 @@ export function banner(text: string, sub = '', ms = 2600) {
   clearTimeout(bannerT); bannerT = window.setTimeout(() => b.classList.remove('on'), ms);
 }
 export function showHud(on: boolean) { root.classList.toggle('hidden', !on); if (!on && el.banner) el.banner.classList.remove('on'); }
+let lastB = 0;
+export function hudBoss(phase: string, e: { name: string; hp: number; maxHp: number; shield: number } | null, sprintT: number, title: string) {
+  const now = performance.now(); if (now - lastB < 100) return; lastB = now;
+  const show = !!e && phase !== 'dead' && phase !== 'fled';
+  el['h-boss'].style.display = show ? '' : 'none';
+  if (show && e) {
+    el['hb-name'].textContent = title;
+    el['hb-hp'].style.width = Math.max(0, e.hp / e.maxHp * 100).toFixed(1) + '%';
+    el['hb-shw'].style.display = e.shield > 0 ? '' : 'none'; el['hb-sh'].style.width = (e.shield * 100).toFixed(1) + '%';
+  }
+  const sp = phase === 'sprint' && !!e;
+  el['h-sprint'].style.display = sp ? '' : 'none';
+  if (sp && e) {
+    const ftp = FTP(); const w = Math.round(sensors.pFast);
+    el['hs-w'].textContent = String(w); el['hs-w'].style.color = w >= ftp * 1.5 ? '#5ef38c' : w >= ftp * 1.2 ? '#ffd166' : '#ff4d5e';
+    el['hs-t'].textContent = String(Math.round(ftp * 1.5));
+    el['hs-sh'].style.width = (e.shield * 100).toFixed(1) + '%';
+    el['hs-left'].textContent = `${Math.max(0, Math.ceil(30 - sprintT))} s left · gear ${trainer.gear} — shift up!`;
+  }
+}
 let last = 0;
 export function updateHud(w: World, wk: WorkoutRuntime | null, force = false) {
   const now = performance.now(); if (!force && now - last < 120) return; last = now;

@@ -17,7 +17,7 @@ import { metaStats } from '../data/meta';
 import { sensors, recorder, resetSensorAvg } from '../trainer/sensors';
 import { sim, BotTarget } from '../trainer/sim';
 import { trainer, setErg, setGearMode, gearFor, shift } from '../trainer/control';
-import { banner, updateHud, showHud } from '../ui/hud';
+import { banner, updateHud, showHud, hudBoss } from '../ui/hud';
 import { showTouch, updateTouch, touchActions } from '../ui/touch';
 import { burst, ring, shake, flash, screen } from './fx';
 import { ZK, Enemy } from './entities';
@@ -75,6 +75,7 @@ export function startRun(o: RunOpts) {
   const wk = new WorkoutRuntime(tpl, o.min); game.wk = wk;
   wk.surgeMult = (c.style === 'tt' ? 1.5 : 1) * (settings.intervalMode === 'gears' ? 1.25 : 1);
   wk.stepStarted = (s, i) => onStep(s, i);
+  dmgHist.length = 0; dmgHistT = 0;
   game.boss = { phase: 'none', t: 0, sprintT: 0, attempts: 0, best: 0, peakW: 0, key: arena.boss };
   sim.getTarget = botTarget;
   recorder.reset(); recorder.start = Date.now();
@@ -145,12 +146,14 @@ function spawnBoss() {
   const e = W.spawnEnemy(id, P.x + Math.cos(a) * 380, P.y + Math.sin(a) * 300, 3);
   if (!e) return null;
   // HP scales with the build you brought
-  const dps = W.player.weapons.reduce((acc, w) => acc + w.dmgDone, 0) / Math.max(60, W.t);
-  e.maxHp = e.hp = Math.max(e.def.hp * W.arena.hpMult * (game.opts!.min / 30), dps * 75);
+  const dps = recentDps();
+  e.maxHp = e.hp = Math.max(e.def.hp * W.arena.hpMult * (0.6 + game.opts!.min / 75), dps * 80);
   e.rank = 3; e.shield = 1; W.boss = e;
   sfx.roar(); shake(14); flash('#ff4d5e', 0.4);
   return e;
 }
+const dmgHist: number[] = []; let dmgHistT = 0;
+function recentDps() { if (dmgHist.length < 2) return game.world.stats.dmgDealt / Math.max(60, game.world.t); return (dmgHist[dmgHist.length - 1] - dmgHist[0]) / ((dmgHist.length - 1) * 10); }
 function bossFlee() {
   const W = game.world; const b = W.boss;
   if (b && !b.dead) { burst(b.x, b.y - 40, 40, '#ffffff', 400, 18); b.dead = true; W.boss = null; }
@@ -190,8 +193,8 @@ function updateBossSeq(dt: number) {
     const b = W.boss; if (!b) { B.phase = 'dead'; return; }
     B.sprintT += dt;
     const pct = sensors.pFast / ftp; B.peakW = Math.max(B.peakW, sensors.pFast);
-    // ~20 s at 150% FTP, ~12.5 s at 200%+, nothing below 120%
-    const rate = clamp((pct - 1.2) / 0.3, 0, 1.6) / 20;
+    // ~24 s at 150% FTP, 15 s at ≥168%, nothing below 120%
+    const rate = clamp((pct - 1.2) / 0.3, 0, 1.6) / 24;
     if (rate > 0) { b.shield = Math.max(0, b.shield - rate * dt); if (Math.random() < 0.3) burst(b.x, b.y - b.r, 3, '#9ff0ff', 240, 10); sfx.shieldHit(); }
     if (b.shield <= 0) {
       B.phase = 'fight'; B.t = 0; B.best = B.sprintT;
@@ -308,9 +311,14 @@ export function updateGame(dt: number) {
   ultUpdate(wdt);
   W.update(wdt, D);
   if (game.stress) stressFill();
+  dmgHistT += wdt; if (dmgHistT >= 10) { dmgHistT = 0; dmgHist.push(W.stats.dmgDealt); if (dmgHist.length > 7) dmgHist.shift(); }
   // ride recording (1 Hz)
   const tgtW = trainer.mode === 'erg' ? trainer.ergFrac * FTP() : 0;
   recorder.tick(dt, tgtW);
+  {
+    const b = W.boss || (() => { for (let i = 0; i < W.enemies.n; i++) { const e = W.enemies.items[i]; if (!e.dead && e.rank === 2) return e; } return null; })();
+    hudBoss(game.boss.phase, b, game.boss.sprintT, b ? `${BOSSES[b.def.id].title} · ${BOSSES[b.def.id].name}` : '');
+  }
   updateHud(W, wk);
   updateTouch(P.dashCd <= 0, P.ultCharge >= 1);
   music.update(dt, wk.inBand, wk.overdriveT > 0);

@@ -143,7 +143,7 @@ function shot(w: World, wi: WeaponInst, x: number, y: number, dx: number, dy: nu
   const sz = kind === PK.WHEEL ? 22 : kind === PK.SHURIKEN ? 11 : 6;
   const p = w.proj(kind, frame, x, y, dx * E.speed, dy * E.speed, sz * E.area, E.dmg, E.dur, false, wi.slot);
   if (!p) return;
-  p.pierce = s.pierce; p.knock = s.knock; p.bounce = s.bounce; p.tint = wi.def.color; p.scale = E.area;
+  p.pierce = s.pierce; p.knock = s.knock; p.bounce = s.bounce; p.tint = wi.def.color; p.scale = kind === PK.WHEEL ? E.area * 0.7 : E.area;
   if (kind !== PK.DART) p.spin = 16;
 }
 function whip(w: World, wi: WeaponInst, ax: number, ay: number, dmg: number, area: number, delay: number) {

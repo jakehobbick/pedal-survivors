@@ -122,7 +122,7 @@ export class World {
   zone(kind: number, x: number, y: number, r: number, life: number, dmg: number, hostile: boolean, slot = -1): Zone | null {
     const z = this.zones.spawn(); if (!z) return null;
     z.kind = kind; z.x = x; z.y = y; z.r = r; z.life = z.max = life; z.dmg = dmg; z.hostile = hostile; z.slot = slot;
-    z.tick = 0.3; z.tt = 0; z.slow = 0; z.delay = 0; z.col = '#ffffff'; z.grow = 0; z.special = 0; z.vx = z.vy = 0; z.a = 0; z.len = 0; z.w = 0;
+    z.tick = 0.3; z.tt = 0; z.slow = 0; z.delay = 0; z.max = life; z.col = '#ffffff'; z.grow = 0; z.special = 0; z.vx = z.vy = 0; z.a = 0; z.len = 0; z.w = 0;
     return z;
   }
   pickup(kind: number, x: number, y: number, v: number) {
@@ -208,7 +208,7 @@ export class World {
     const P = this.player;
     if (P.invuln > 0 || P.downT > 0 || this.invulnMenu || P.dashT > 0) return;
     const d = Math.max(1, dmg - P.stats.armor - P.dyn.armor);
-    P.hp -= d; P.invuln = 0.5; P.hitT = 0.25;
+    P.hp -= d; P.invuln = 0.7; P.hitT = 0.25;
     this.stats.dmgTaken += d;
     dmgNumber(P.x, P.y - 70, d, 3);
     screen.vignetteHurt = Math.min(1, screen.vignetteHurt + 0.5);
@@ -336,6 +336,11 @@ export class World {
       if (z.kind === ZK.BEAM && z.special) { z.a += z.vx * dt; z.x = P.x; z.y = P.y - 26; }
       if (z.dmg <= 0) continue;
       z.tt -= dt; if (z.tt > 0) continue; z.tt = z.tick;
+      if (z.hostile && z.kind === ZK.LASER_LINE) {
+        const ax = Math.cos(z.a), ay = Math.sin(z.a); const rx = P.x - z.x, ry = P.y - 20 - z.y;
+        if (Math.abs(rx * ax + ry * ay) < z.len / 2 && Math.abs(-rx * ay + ry * ax) < z.w * 0.6 + P.r * 0.4) this.hurtPlayer(z.dmg, P.x - ay * 10, P.y + ax * 10);
+        z.tt = 0.25; continue;
+      }
       if (z.hostile) {
         const dx = P.x - z.x, dy = P.y - z.y;
         if (dx * dx + dy * dy < (z.r + P.r * 0.5) * (z.r + P.r * 0.5)) this.hurtPlayer(z.dmg, z.x, z.y);

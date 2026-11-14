@@ -6,6 +6,7 @@
 import type { World } from './world';
 import { rng } from '../core/math';
 import { ENEMY_BY_ID } from '../data/enemies';
+import { arenaHazard } from './hazards';
 
 export type WaveKind = 'normal' | 'elite' | 'swarm' | 'siege' | 'calm' | 'boss' | 'sprint';
 export class Director {
@@ -23,16 +24,16 @@ export class Director {
   update(dt: number) {
     const w = this.w; if (!this.enabled) return;
     const m = this.minutes(); const I = Math.max(0.3, this.intensity);
-    w.enemyHpMult = w.arena.hpMult * (1 + 0.075 * m + 0.004 * m * m) * (0.85 + 0.25 * I);
+    w.enemyHpMult = w.arena.hpMult * (1 + 0.06 * m + 0.0028 * m * m) * (0.85 + 0.25 * I);
     w.enemyDmgMult = (1 + 0.03 * m) * (this.pressure > 1 ? 1 + (this.pressure - 1) * 0.3 : 1);
     w.enemySpeedMult = 1 + (this.pressure - 1) * 0.25;
-    let rate = (0.6 + 0.3 * m) * (0.4 + I * I * 0.75) * this.pressure * this.spawnScale;
+    let rate = (0.6 + 0.28 * m) * (0.5 + I * I * 0.6) * this.pressure * this.spawnScale;
     let cap = Math.min(440, 20 + m * 10.5 + I * 60) * this.pressure;
     switch (this.kind) {
       case 'calm': rate *= 0.3; cap *= 0.35; break;
       case 'swarm': rate *= 1.6; break;
-      case 'elite': rate *= 1.1; break;
-      case 'boss': rate *= 0.45; cap *= 0.5; break;
+      case 'elite': rate *= 0.95; break;
+      case 'boss': rate *= 0.3; cap *= 0.35; break;
       case 'sprint': rate *= 0.6; break;
     }
     cap = Math.min(cap * this.spawnScale, 470);
@@ -45,6 +46,9 @@ export class Director {
     // groups (swarm packs)
     this.groupT -= dt;
     if (this.groupT <= 0) { this.groupT = this.kind === 'swarm' ? 3 : this.kind === 'calm' ? 18 : 11 - Math.min(5, m * 0.2); if (w.enemies.n < cap + 20) this.spawnGroup(); }
+    // arena hazards (not during calm/boss)
+    this.hazardT -= dt;
+    if (this.hazardT <= 0) { this.hazardT = 28 + rng.next() * 20; if (this.kind !== 'calm' && this.kind !== 'boss' && m > 2) arenaHazard(w); }
     // elites
     this.eliteT -= dt;
     if (this.eliteT <= 0 && this.kind !== 'calm' && this.kind !== 'boss') {

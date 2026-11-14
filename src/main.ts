@@ -62,13 +62,14 @@ function frame(now: number) {
   const dt = dtReal * dbg.timeScale;
   const running = game.state === 'run';
   pollGamepads();
-  simTick(running && !game.paused ? dt : dtReal);
-  updateSensors(running ? dt : dtReal);
   trainerTick();
   if (running) {
-    updateGame(dt);
+    // fixed-ish sub-steps keep physics stable under the debug time-scale
+    const n = Math.max(1, Math.ceil(dt / 0.034)); const h = dt / n;
+    for (let i = 0; i < n && game.state === 'run'; i++) { simTick(game.paused ? dtReal / n : h); updateSensors(h); updateGame(h); }
     if (game.state === 'run') renderWorld(ctx, game.world, W, H, DPR, now);
   } else {
+    simTick(dtReal); updateSensors(dtReal);
     menuX += dtReal * 40;
     renderBackdrop();
   }

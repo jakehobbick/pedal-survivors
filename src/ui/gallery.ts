@@ -2,6 +2,7 @@
 import { enemySprites, ART_IDS, Theme } from '../art/enemies';
 import { buildRiderSheet } from '../art/rider';
 import { CHARACTERS } from '../data/characters';
+import { bossSprites, BOSS_IDS } from '../art/bosses';
 export function showGallery(ctx: CanvasRenderingContext2D, W: number, H: number, DPR: number, extra?: (ctx: CanvasRenderingContext2D, y: number) => void) {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = '#3a4a3a'; ctx.fillRect(0, 0, W, H);
@@ -20,6 +21,10 @@ export function showGallery(ctx: CanvasRenderingContext2D, W: number, H: number,
   }
   let x = 20;
   for (const c of CHARACTERS) { const sh = buildRiderSheet(c.look); ctx.drawImage(sh.run[2].c, x, y, sh.run[2].w * 2, sh.run[2].h * 2); ctx.drawImage(sh.portrait, x + 150, y, 80, 80); x += 240; }
+  if (location.search.includes('bosses')) {
+    ctx.fillStyle = '#2a3a2a'; ctx.fillRect(0, 0, W, H); let bx = 10; let by = 20;
+    for (const id of BOSS_IDS) { const b = bossSprites(id); const f = b.run[1]; const p = b.pose[0]; const sc = 1.1; if (bx + f.w * sc * 2 > W) { bx = 10; by += 300; } ctx.drawImage(f.c, bx, by, f.w * sc, f.h * sc); ctx.drawImage(p.c, bx + f.w * sc, by, f.w * sc, f.h * sc); bx += f.w * sc * 2 + 10; }
+  }
   if (extra) extra(ctx, y + 160);
   void W; void H;
 }
