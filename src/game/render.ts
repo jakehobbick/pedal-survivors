@@ -15,6 +15,7 @@ const MAXS = 1200;
 const keyY = new Float32Array(MAXS), refs = new Int32Array(MAXS), order = new Int32Array(MAXS);
 const BUCKETS = 96; const bcount = new Int32Array(BUCKETS + 1);
 const dronePos = new Float32Array(32);
+let vgW = 0, vgH = 0; let vgDark: CanvasGradient | null = null, vgHurt: CanvasGradient | null = null;
 const props: { k: number; x: number; y: number }[] = [];
 for (let i = 0; i < 64; i++) props.push({ k: 0, x: 0, y: 0 });
 
@@ -125,13 +126,15 @@ export function renderWorld(g: CanvasRenderingContext2D, w: World, W: number, H:
   // fog / tint
   g.fillStyle = A.fog; g.fillRect(0, 0, W, H);
   // vignette
-  const vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
-  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, `rgba(8,0,20,${0.55})`);
-  g.fillStyle = vg; g.fillRect(0, 0, W, H);
+  if (vgW !== W || vgH !== H || !vgDark) {
+    vgW = W; vgH = H;
+    vgDark = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75); vgDark.addColorStop(0, 'rgba(0,0,0,0)'); vgDark.addColorStop(1, 'rgba(8,0,20,0.55)');
+    vgHurt = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.7); vgHurt.addColorStop(0, 'rgba(255,0,40,0)'); vgHurt.addColorStop(1, 'rgba(255,0,40,1)');
+  }
+  g.fillStyle = vgDark; g.fillRect(0, 0, W, H);
   if (screen.vignetteHurt > 0 || P.hp < P.maxHp * 0.25) {
     const a = Math.max(screen.vignetteHurt * 0.6, P.hp < P.maxHp * 0.25 ? 0.25 + 0.15 * Math.sin(now * 0.008) : 0);
-    const hg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.7);
-    hg.addColorStop(0, 'rgba(255,0,40,0)'); hg.addColorStop(1, `rgba(255,0,40,${a})`); g.fillStyle = hg; g.fillRect(0, 0, W, H);
+    g.globalAlpha = Math.min(1, a); g.fillStyle = vgHurt!; g.fillRect(0, 0, W, H); g.globalAlpha = 1;
   }
   if (screen.flash > 0) { g.globalAlpha = screen.flash; g.fillStyle = screen.flashCol; g.fillRect(0, 0, W, H); g.globalAlpha = 1; }
   // offscreen indicators for chests, elites, bosses
@@ -295,16 +298,19 @@ function drawZoneOver(g: CanvasRenderingContext2D, z: import('./entities').Zone,
   void w;
 }
 
+let IW = 0, IH = 0, IZ = 1, ICX = 0, ICY = 0, INOW = 0; let IG: CanvasRenderingContext2D | null = null;
+function mark(x: number, y: number, col: string, big: boolean) {
+  const g = IG!; const W = IW, H = IH;
+  const sx = (x - ICX) * IZ + W / 2, sy = (y - ICY) * IZ + H / 2;
+  if (sx > 0 && sx < W && sy > 0 && sy < H) return;
+  const m = 34; const ax = Math.max(m, Math.min(W - m, sx)), ay = Math.max(m + 70, Math.min(H - m - 30, sy));
+  const a = Math.atan2(sy - H / 2, sx - W / 2);
+  g.save(); g.translate(ax, ay); g.rotate(a); g.globalAlpha = 0.75 + 0.25 * Math.sin(INOW * 0.008);
+  g.fillStyle = col; g.beginPath(); const s = big ? 16 : 11; g.moveTo(s, 0); g.lineTo(-s * 0.7, -s * 0.7); g.lineTo(-s * 0.3, 0); g.lineTo(-s * 0.7, s * 0.7); g.closePath(); g.fill();
+  g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 2; g.stroke(); g.restore(); g.globalAlpha = 1;
+}
 function indicators(g: CanvasRenderingContext2D, w: World, W: number, H: number, zoom: number, cx: number, cy: number, now: number) {
-  const mark = (x: number, y: number, col: string, big: boolean) => {
-    const sx = (x - cx) * zoom + W / 2, sy = (y - cy) * zoom + H / 2;
-    if (sx > 0 && sx < W && sy > 0 && sy < H) return;
-    const m = 34; const ax = Math.max(m, Math.min(W - m, sx)), ay = Math.max(m + 70, Math.min(H - m - 30, sy));
-    const a = Math.atan2(sy - H / 2, sx - W / 2);
-    g.save(); g.translate(ax, ay); g.rotate(a); g.globalAlpha = 0.75 + 0.25 * Math.sin(now * 0.008);
-    g.fillStyle = col; g.beginPath(); const s = big ? 16 : 11; g.moveTo(s, 0); g.lineTo(-s * 0.7, -s * 0.7); g.lineTo(-s * 0.3, 0); g.lineTo(-s * 0.7, s * 0.7); g.closePath(); g.fill();
-    g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 2; g.stroke(); g.restore(); g.globalAlpha = 1;
-  };
+  IG = g; IW = W; IH = H; IZ = zoom; ICX = cx; ICY = cy; INOW = now;
   for (let i = 0; i < w.pickups.n; i++) { const p = w.pickups.items[i]; if (!p.dead && p.kind === PU.CHEST) mark(p.x, p.y, '#ffd166', false); }
   for (let i = 0; i < w.enemies.n; i++) { const e = w.enemies.items[i]; if (!e.dead && e.rank >= 1) mark(e.x, e.y, e.rank >= 2 ? '#ff4d5e' : '#ffb000', e.rank >= 2); }
 }

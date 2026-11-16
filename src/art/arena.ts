@@ -177,11 +177,14 @@ export function buildArenaArt(id: string): ArenaArt {
 
 /** Deterministic decor placement: one candidate per 360-unit cell. */
 export const DECOR_CELL = 360;
+const DECOR = { kind: 0, x: 0, y: 0 };
+/** returns a shared object (valid until the next call) — no per-frame allocation */
 export function decorAt(cx: number, cy: number): { kind: number; x: number; y: number } | null {
   const h = hash2(cx, cy);
   if (h > 0.55) return null;
-  const kind = h < 0.18 ? 0 : h < 0.36 ? 1 : 2;
-  return { kind, x: cx * DECOR_CELL + hash2(cx + 7, cy) * DECOR_CELL * 0.8, y: cy * DECOR_CELL + hash2(cx, cy + 3) * DECOR_CELL * 0.8 };
+  DECOR.kind = h < 0.18 ? 0 : h < 0.36 ? 1 : 2;
+  DECOR.x = cx * DECOR_CELL + hash2(cx + 7, cy) * DECOR_CELL * 0.8; DECOR.y = cy * DECOR_CELL + hash2(cx, cy + 3) * DECOR_CELL * 0.8;
+  return DECOR;
 }
 export function drawGround(g: Ctx, art: ArenaArt, camX: number, camY: number, vw: number, vh: number) {
   const T = art.tileSize;

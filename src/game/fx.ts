@@ -11,8 +11,9 @@ let pn = 0;
 const sprites: HTMLCanvasElement[] = [];
 const sprIdx = new Map<string, number>();
 function spr(key: string, make: () => HTMLCanvasElement) { let i = sprIdx.get(key); if (i == null) { i = sprites.length; sprites.push(make()); sprIdx.set(key, i); } return i; }
-export function glowId(col: string) { return spr('g' + col, () => tintedGlow(col)); }
-export function sparkId(col: string) { return spr('s' + col, () => tintedSpark(col)); }
+const glowIds = new Map<string, number>(), sparkIds = new Map<string, number>();
+export function glowId(col: string) { let i = glowIds.get(col); if (i == null) { i = spr('g' + col, () => tintedGlow(col)); glowIds.set(col, i); } return i; }
+export function sparkId(col: string) { let i = sparkIds.get(col); if (i == null) { i = spr('s' + col, () => tintedSpark(col)); sparkIds.set(col, i); } return i; }
 export function frameId(name: string) { return spr('f' + name, () => fxFrames()[name].c); }
 
 export function particle(kind: number, sid: number, x: number, y: number, vx: number, vy: number, life: number, size: number, drag = 2) {
@@ -88,17 +89,18 @@ export function dmgNumber(x: number, y: number, v: number, kind: number) { // ki
 }
 export function updateNumbers(dt: number) { for (let i = 0; i < nn; i++) { if (nlife[i] > 0) { nlife[i] -= dt; ny[i] -= dt * (nkind[i] === 1 ? 50 : 38); } } }
 const COL = ['#ffffff', '#ffd166', '#5ef38c', '#ff4d5e', '#7fe0ff'];
-const STR: string[] = []; for (let i = 0; i < 2000; i++) STR.push(String(i));
+const STR: string[] = [], STRP: string[] = [], STRM: string[] = []; for (let i = 0; i < 2000; i++) { STR.push(String(i)); STRP.push('+' + i); STRM.push('-' + i); }
+const CRIT_FONT: string[] = []; for (let i = 0; i <= 60; i++) CRIT_FONT.push(`800 ${i}px Rajdhani, sans-serif`);
 export function drawNumbers(g: CanvasRenderingContext2D) {
   g.textAlign = 'center'; g.lineJoin = 'round';
   for (let i = 0; i < nn; i++) {
     const L = nlife[i]; if (L <= 0) continue;
     const k = nkind[i]; const crit = k === 1;
     const pop = crit ? 1 + Math.max(0, L - 0.7) * 3 : 1;
-    g.font = crit ? `800 ${Math.round(24 * pop)}px Rajdhani, sans-serif` : '700 17px Rajdhani, sans-serif';
+    g.font = crit ? CRIT_FONT[Math.min(60, Math.round(24 * pop))] : '700 17px Rajdhani, sans-serif';
     g.globalAlpha = Math.min(1, L * 3);
     const v = nval[i]; const s = v < 2000 && v >= 0 ? STR[v] : String(v);
-    const txt = k === 2 ? '+' + s : k === 3 ? '-' + s : s;
+    const txt = v < 2000 && v >= 0 ? (k === 2 ? STRP[v] : k === 3 ? STRM[v] : s) : (k === 2 ? '+' + s : k === 3 ? '-' + s : s);
     g.lineWidth = 3.5; g.strokeStyle = 'rgba(20,8,30,.9)'; g.strokeText(txt, nx[i], ny[i]);
     g.fillStyle = COL[k]; g.fillText(txt, nx[i], ny[i]);
   }

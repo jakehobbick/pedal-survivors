@@ -247,7 +247,8 @@ function ultUpdate(dt: number) {
   }
 }
 
-let pausedTrainer: { mode: 'erg' | 'gear'; erg: number } | null = null;
+let pausedTrainer: { mode: 'erg' | 'gear'; erg: number; gear: number } | null = null;
+function trainerWantsGears(s: Step) { const band = game.wk?.targetBand(); return s.mode === 'gear' || !band || (settings.intervalMode === 'gears' && s.kind !== 'recovery' && s.kind !== 'warmup' && s.kind !== 'cooldown'); }
 /** after a pause, put the resistance back where the workout wants it */
 export function resumeTrainer() {
   const wk = game.wk; if (!wk || game.state !== 'run') return;
@@ -256,6 +257,7 @@ export function resumeTrainer() {
   else if (ph === 'fight') setErg(0.78);
   else if (ph === 'recover') setErg(0.55);
   else if (pausedTrainer && wk.step.kind === 'boss') { if (pausedTrainer.mode === 'erg') setErg(pausedTrainer.erg); else setGearMode(); }
+  else if (pausedTrainer && pausedTrainer.mode === 'gear' && trainerWantsGears(wk.step)) setGearMode(pausedTrainer.gear);
   else applyTrainer(wk.step);
   pausedTrainer = null;
 }
@@ -263,7 +265,7 @@ export function togglePause(on?: boolean) {
   if (game.state !== 'run') return;
   const v = on ?? !game.paused; if (v === game.paused) return;
   game.paused = v;
-  if (v) { pausedTrainer = { mode: trainer.mode, erg: trainer.ergFrac }; setErg(0.45); game.ui.openPause(); music.duck(true); }
+  if (v) { pausedTrainer = { mode: trainer.mode, erg: trainer.ergFrac, gear: trainer.gear }; setErg(0.45); game.ui.openPause(); music.duck(true); }
   else { music.duck(false); resumeTrainer(); }
 }
 

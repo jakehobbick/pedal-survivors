@@ -207,3 +207,13 @@ textarea { background: #140b26; color: #fff; border: 1px solid var(--line); bord
 .screen.under { visibility: hidden; }
 .card.meta .ttl { padding-right: 54px; }
 body.bossbar #banner { top: 36%; }
+
+/* ---------- narrow / portrait iPad: power + clock on top, interval panel full-width below ---------- */
+@media (max-width: 960px) {
+  #h-int { top: calc(142px + var(--safe-t)); width: min(560px, calc(100vw - 20px)); }
+  #h-power { min-width: 0; }
+  #hud .big { font-size: 44px; }
+  #h-boss { top: calc(250px + var(--safe-t)); width: min(560px, 90vw); }
+  #banner { top: 38%; }
+  body.bossbar #banner { top: 44%; }
+}

@@ -33,12 +33,13 @@ function eff(w: World, wi: WeaponInst) {
   };
 }
 let aimFlip = false;
-function aimDir(w: World, maxR = 700): [number, number, Enemy | null] {
+const AIM = { x: 0, y: 0, e: null as Enemy | null };
+function aimDir(w: World, maxR = 700) {
   const P = w.player; let e = w.nearest(P.x, P.y - 20, maxR);
   const b = w.boss && !w.boss.dead && w.boss.shield <= 0 ? w.boss : null;
   if (b && e !== b && (aimFlip = !aimFlip) && (b.x - P.x) ** 2 + (b.y - P.y) ** 2 < 520 * 520) e = b;
-  if (e) { const dx = e.x - P.x, dy = e.y - e.r * 0.5 - (P.y - 24); const l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l, e]; }
-  return [P.hx, P.hy, null];
+  if (e) { const dx = e.x - P.x, dy = e.y - e.r * 0.5 - (P.y - 24); const l = Math.hypot(dx, dy) || 1; AIM.x = dx / l; AIM.y = dy / l; AIM.e = e; return AIM; }
+  AIM.x = P.hx; AIM.y = P.hy; AIM.e = null; return AIM;
 }
 function fire(w: World, wi: WeaponInst) {
   const P = w.player; const s = wi.s; const E = eff(w, wi);
@@ -51,7 +52,7 @@ function fire(w: World, wi: WeaponInst) {
         for (let i = 0; i < n; i++) { const a = wi.ang + (i / n) * TAU; shot(w, wi, ox, oy, Math.cos(a), Math.sin(a), E, PK.DART, 'dart'); }
         sfx.shoot(0.6); break;
       }
-      const [dx, dy] = aimDir(w);
+      const aim0 = aimDir(w); const dx = aim0.x, dy = aim0.y;
       const base = Math.atan2(dy, dx);
       for (let i = 0; i < n; i++) {
         const off = (i - (n - 1) / 2) * (s.special === 1 ? 0.32 : 0.14);
@@ -75,7 +76,7 @@ function fire(w: World, wi: WeaponInst) {
       break;
     }
     case 'cannon': {
-      const [dx, dy] = aimDir(w, 800); const base = Math.atan2(dy, dx);
+      const aim0 = aimDir(w, 800); const dx = aim0.x, dy = aim0.y; const base = Math.atan2(dy, dx);
       for (let i = 0; i < E.amount; i++) {
         const a = base + (i - (E.amount - 1) / 2) * 0.25;
         const p = w.proj(PK.BALL, 'ball', ox, oy, Math.cos(a) * E.speed, Math.sin(a) * E.speed, 13 * Math.sqrt(E.area), E.dmg, E.dur, false, wi.slot);
@@ -110,7 +111,7 @@ function fire(w: World, wi: WeaponInst) {
       sfx.zap(); break;
     }
     case 'boomerang': {
-      const [dx, dy] = aimDir(w, 600); const base = Math.atan2(dy, dx);
+      const aim0 = aimDir(w, 600); const dx = aim0.x, dy = aim0.y; const base = Math.atan2(dy, dx);
       for (let i = 0; i < E.amount; i++) {
         const a = s.special ? base + i * TAU / E.amount : base + (i - (E.amount - 1) / 2) * 0.5;
         const p = w.proj(PK.BOOMER, 'boomer', ox, oy, Math.cos(a) * E.speed, Math.sin(a) * E.speed, 16 * E.area, E.dmg, E.dur * 2.4, false, wi.slot);
@@ -119,7 +120,7 @@ function fire(w: World, wi: WeaponInst) {
       sfx.whoosh(); break;
     }
     case 'beam': {
-      const [dx, dy] = aimDir(w, s.aoe);
+      const aim0 = aimDir(w, s.aoe); const dx = aim0.x, dy = aim0.y;
       const base = Math.atan2(dy, dx);
       const width = 16 * E.area;
       for (let i = 0; i < E.amount; i++) {
