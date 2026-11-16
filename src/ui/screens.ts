@@ -15,6 +15,7 @@ import { lastRide, exportRide } from '../export/tcx';
 import { pairingPanelHTML, wirePairingPanel } from './pairing';
 import { openMeta, openAchievements, openStats, isCharUnlocked, isArenaUnlocked } from './metascreens';
 import { fmtTime } from '../core/math';
+import { achCount, ACHIEVEMENTS } from '../meta/achievements';
 
 export function openTitle() {
   const lr = lastRide();
@@ -25,7 +26,7 @@ export function openTitle() {
     <div class="row" style="margin-top:16px"><button class="btn" style="font-size:24px;padding:16px 46px" data-default id="t-ride">🚴 RIDE</button></div>
     <div class="row" style="margin-top:14px">
       <button class="btn gold sm" id="t-meta">⬆ Upgrades · ${save.gold} gold</button>
-      <button class="btn sec sm" id="t-ach">🏆 Achievements</button>
+      <button class="btn sec sm" id="t-ach">🏆 Achievements ${achCount()}/${ACHIEVEMENTS.length}</button>
       <button class="btn sec sm" id="t-stats">📊 Stats</button>
       <button class="btn sec sm" id="t-set">⚙ Settings</button>
       <button class="btn sec sm" id="t-keys">🎮 Controls</button>
@@ -34,8 +35,9 @@ export function openTitle() {
     <p class="note" style="margin-top:14px;text-align:center">FTP ${settings.ftp} W · Max HR ${settings.maxHr} · ${save.life.runs} runs · ${fmtTime(save.life.secs)} ridden</p>`);
   wirePairingPanel(el);
   el.querySelector<HTMLButtonElement>('#t-ride')!.onclick = () => { initAudio(); sfx.ui(); openSetup(); };
-  el.querySelector<HTMLButtonElement>('#t-meta')!.onclick = () => openMeta();
+  el.querySelector<HTMLButtonElement>('#t-meta')!.onclick = () => openMeta(openTitle);
   el.querySelector<HTMLButtonElement>('#t-ach')!.onclick = () => openAchievements();
+  el.querySelector<HTMLButtonElement>('#t-meta')!.innerHTML = `⬆ Upgrades · 💰 ${save.gold}`;
   el.querySelector<HTMLButtonElement>('#t-stats')!.onclick = () => openStats();
   el.querySelector<HTMLButtonElement>('#t-set')!.onclick = () => openSettings(true);
   el.querySelector<HTMLButtonElement>('#t-keys')!.onclick = () => openKeys();

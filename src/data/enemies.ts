@@ -14,7 +14,7 @@ export const ENEMIES: EnemyDef[] = [
   { id: 'slime', behavior: 'splitter', hp: 42, speed: 56, dmg: 9, r: 18, xp: 2, mass: 1.5, splitInto: 'slimelet', splitCount: 2 },
   { id: 'slimelet', behavior: 'chase', hp: 12, speed: 84, dmg: 6, r: 11, xp: 1, mass: 0.6, hidden: true },
   { id: 'knight', behavior: 'shielded', hp: 64, speed: 52, dmg: 12, r: 18, xp: 4, mass: 3 },
-  { id: 'tanuki', behavior: 'exploder', hp: 18, speed: 98, dmg: 6, r: 14, xp: 2, mass: 0.8, fuse: 0.8, blastR: 74, blastDmg: 18 },
+  { id: 'tanuki', behavior: 'exploder', hp: 18, speed: 98, dmg: 6, r: 14, xp: 2, mass: 0.8, fuse: 0.9, blastR: 70, blastDmg: 12 },
   { id: 'phantom', behavior: 'phaser', hp: 26, speed: 86, dmg: 10, r: 14, xp: 3, mass: 0.7 },
   { id: 'fox', behavior: 'healer', hp: 32, speed: 62, dmg: 7, r: 15, xp: 4, mass: 1, range: 210, healR: 130, healPct: 0.12 },
   // mini-bosses

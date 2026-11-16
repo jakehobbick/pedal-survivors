@@ -18,10 +18,10 @@ import { sfx } from '../audio/sfx';
 export interface RunStats {
   kills: number; elites: number; minis: number; bosses: number; dmgDealt: number; dmgTaken: number; gold: number; xp: number;
   chests: number; evolutions: number; falls: number; healed: number; maxLevel: number; surgeTime: number; overdrives: number;
-  dashes: number; ults: number; pickups: number; bombs: number; distance: number; bestHit: number;
+  dashes: number; ults: number; pickups: number; bombs: number; distance: number; bestHit: number; dmgBy: number[];
   killsBy: Record<string, number>;
 }
-export const newStats = (): RunStats => ({ kills: 0, elites: 0, minis: 0, bosses: 0, dmgDealt: 0, dmgTaken: 0, gold: 0, xp: 0, chests: 0, evolutions: 0, falls: 0, healed: 0, maxLevel: 1, surgeTime: 0, overdrives: 0, dashes: 0, ults: 0, pickups: 0, bombs: 0, distance: 0, bestHit: 0, killsBy: {} });
+export const newStats = (): RunStats => ({ kills: 0, elites: 0, minis: 0, bosses: 0, dmgDealt: 0, dmgTaken: 0, gold: 0, xp: 0, chests: 0, evolutions: 0, falls: 0, healed: 0, maxLevel: 1, surgeTime: 0, overdrives: 0, dashes: 0, ults: 0, pickups: 0, bombs: 0, distance: 0, bestHit: 0, killsBy: {}, dmgBy: [0, 0, 0, 0] });
 
 export interface WorldEvents {
   levelUp(): void;
@@ -197,19 +197,19 @@ export class World {
   explode(x: number, y: number, r: number, dmg: number, hostileToPlayer: boolean, slot: number, col = '#ff9f43', knock = 160) {
     const n = this.query(x, y, r, this.qres2);
     for (let i = 0; i < n; i++) { const e = this.enemies.items[this.qres2[i]]; this.damage(e, hostileToPlayer ? dmg * 0.6 : dmg, x, y, knock, slot); }
-    if (hostileToPlayer) { const P = this.player; const dx = P.x - x, dy = P.y - y; if (dx * dx + dy * dy < (r + P.r) * (r + P.r)) this.hurtPlayer(dmg, x, y); }
+    if (hostileToPlayer) { const P = this.player; const dx = P.x - x, dy = P.y - y; if (dx * dx + dy * dy < (r + P.r) * (r + P.r)) this.hurtPlayer(dmg, x, y, 3); }
     const z = this.zone(ZK.BLAST, x, y, r, 0.35, 0, false); if (z) z.col = col;
     burst(x, y, 16, col, r * 4, 14, 0.5);
     for (let k = 0; k < 4; k++) particle(3, frameId('smoke'), x + (rng.next() - 0.5) * r, y + (rng.next() - 0.5) * r, 0, -20, 0.9, r * 0.8, 1);
     shake(Math.min(8, r / 12));
     sfx.boom(r);
   }
-  hurtPlayer(dmg: number, sx: number, sy: number) {
+  hurtPlayer(dmg: number, sx: number, sy: number, src = 0) {
     const P = this.player;
     if (P.invuln > 0 || P.downT > 0 || this.invulnMenu || P.dashT > 0) return;
-    const d = Math.max(1, dmg - P.stats.armor - P.dyn.armor);
-    P.hp -= d; P.invuln = 0.7; P.hitT = 0.25;
-    this.stats.dmgTaken += d;
+    const d = Math.max(1, Math.round(dmg * 0.85 - P.stats.armor - P.dyn.armor));
+    P.hp -= d; P.invuln = 0.85; P.hitT = 0.25;
+    this.stats.dmgTaken += d; this.stats.dmgBy[src] += d;
     dmgNumber(P.x, P.y - 70, d, 3);
     screen.vignetteHurt = Math.min(1, screen.vignetteHurt + 0.5);
     shake(4); sfx.hurt();
@@ -297,7 +297,7 @@ export class World {
       if (p.life <= 0) { p.dead = true; if (p.aoe > 0 && !p.hostile) projBlast(this, p); continue; }
       if (p.hostile) {
         const dx = P.x - p.x, dy = P.y - 24 - p.y; const rr = p.r + P.r * 0.7;
-        if (dx * dx + dy * dy < rr * rr) { this.hurtPlayer(p.dmg, p.x, p.y); p.dead = true; burst(p.x, p.y, 6, '#ff4dff', 140, 8); }
+        if (dx * dx + dy * dy < rr * rr) { this.hurtPlayer(p.dmg, p.x, p.y, 1); p.dead = true; burst(p.x, p.y, 6, '#ff4dff', 140, 8); }
         continue;
       }
       const n = this.query(p.x, p.y, p.r);
@@ -338,12 +338,12 @@ export class World {
       z.tt -= dt; if (z.tt > 0) continue; z.tt = z.tick;
       if (z.hostile && z.kind === ZK.LASER_LINE) {
         const ax = Math.cos(z.a), ay = Math.sin(z.a); const rx = P.x - z.x, ry = P.y - 20 - z.y;
-        if (Math.abs(rx * ax + ry * ay) < z.len / 2 && Math.abs(-rx * ay + ry * ax) < z.w * 0.6 + P.r * 0.4) this.hurtPlayer(z.dmg, P.x - ay * 10, P.y + ax * 10);
+        if (Math.abs(rx * ax + ry * ay) < z.len / 2 && Math.abs(-rx * ay + ry * ax) < z.w * 0.6 + P.r * 0.4) this.hurtPlayer(z.dmg, P.x - ay * 10, P.y + ax * 10, 2);
         z.tt = 0.25; continue;
       }
       if (z.hostile) {
         const dx = P.x - z.x, dy = P.y - z.y;
-        if (dx * dx + dy * dy < (z.r + P.r * 0.5) * (z.r + P.r * 0.5)) this.hurtPlayer(z.dmg, z.x, z.y);
+        if (dx * dx + dy * dy < (z.r + P.r * 0.5) * (z.r + P.r * 0.5)) this.hurtPlayer(z.dmg, z.x, z.y, 2);
         continue;
       }
       if (z.kind === ZK.BEAM) { beamHit(this, z.x, z.y, z.a, z.len, z.w, z.dmg, z.slot, 20); continue; }

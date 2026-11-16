@@ -147,7 +147,7 @@ function spawnBoss() {
   if (!e) return null;
   // HP scales with the build you brought
   const dps = recentDps();
-  e.maxHp = e.hp = Math.max(e.def.hp * W.arena.hpMult * (0.6 + game.opts!.min / 75), dps * 80);
+  e.maxHp = e.hp = Math.max(e.def.hp * W.arena.hpMult * (0.4 + game.opts!.min / 100), dps * 17);
   e.rank = 3; e.shield = 1; W.boss = e;
   sfx.roar(); shake(14); flash('#ff4d5e', 0.4);
   return e;
@@ -333,7 +333,25 @@ touchActions.pause = () => togglePause(true);
 function autopilot(o: { x: number; y: number }) {
   const W = game.world, P = W.player; let ax = 0, ay = 0;
   const n = W.query(P.x, P.y, 260, W.qres2);
-  for (let k = 0; k < n; k++) { const e = W.enemies.items[W.qres2[k]]; const dx = P.x - e.x, dy = P.y - e.y; const d2 = dx * dx + dy * dy + 100; ax += dx / d2 * 900 * (e.rank ? 3 : 1); ay += dy / d2 * 900 * (e.rank ? 3 : 1); }
+  const boss = W.boss && !W.boss.dead && W.boss.shield <= 0 ? W.boss : null;
+  // dodge telegraphed impacts, burning ground and charged laser lines (a human sees these)
+  let danger = 0;
+  for (let i = 0; i < W.zones.n; i++) {
+    const z = W.zones.items[i]; if (z.dead || !z.hostile) continue;
+    if (z.kind === ZK.TELEGRAPH || z.kind === ZK.HAZARD_PATCH) {
+      const dx = P.x - z.x, dy = P.y - z.y; const d = Math.hypot(dx, dy) || 1; const reach = z.r + 70;
+      if (d < reach) { const k = (reach - d) / reach * 6; ax += dx / d * k; ay += dy / d * k; danger += k; }
+    } else if (z.kind === ZK.LASER_LINE && z.delay > 0) {
+      const ux = Math.cos(z.a), uy = Math.sin(z.a); const rx = P.x - z.x, ry = P.y - z.y; const perp = -rx * uy + ry * ux;
+      if (Math.abs(perp) < z.w + 80) { const sgn = perp >= 0 ? 1 : -1; ax += -uy * sgn * 4; ay += ux * sgn * 4; danger += 4; }
+    }
+  }
+  for (let k = 0; k < n; k++) { const e = W.enemies.items[W.qres2[k]]; if (e === boss) continue; const dx = P.x - e.x, dy = P.y - e.y; const d2 = dx * dx + dy * dy + 100; const m = e.rank ? 3 : 1; ax += dx / d2 * 900 * m; ay += dy / d2 * 900 * m; }
+  if (boss) {
+    const dx = boss.x - P.x, dy = boss.y - P.y; const d = Math.hypot(dx, dy) || 1; const want = 250;
+    const radial = clamp((d - want) / 120, -1.5, 1.5); ax += dx / d * radial * 2.2 - dy / d * 1.4; ay += dy / d * radial * 2.2 + dx / d * 1.4;
+    o.x = ax; o.y = ay; return true;
+  }
   let best = 1e12, bx = 0, by = 0;
   for (let i = 0; i < W.pickups.n; i += 3) { const p = W.pickups.items[i]; if (p.dead) continue; const dx = p.x - P.x, dy = p.y - P.y; const d2 = dx * dx + dy * dy; const w = p.kind === 5 ? d2 * 0.1 : d2; if (w < best && d2 < 600 * 600) { best = w; bx = dx; by = dy; } }
   if (best < 1e12) { const l = Math.hypot(bx, by) || 1; ax += bx / l * 1.2; ay += by / l * 1.2; }

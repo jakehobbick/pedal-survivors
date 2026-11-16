@@ -32,8 +32,11 @@ function eff(w: World, wi: WeaponInst) {
     amount: Math.max(1, s.amount + P.stats.amount),
   };
 }
+let aimFlip = false;
 function aimDir(w: World, maxR = 700): [number, number, Enemy | null] {
-  const P = w.player; const e = w.nearest(P.x, P.y - 20, maxR);
+  const P = w.player; let e = w.nearest(P.x, P.y - 20, maxR);
+  const b = w.boss && !w.boss.dead && w.boss.shield <= 0 ? w.boss : null;
+  if (b && e !== b && (aimFlip = !aimFlip) && (b.x - P.x) ** 2 + (b.y - P.y) ** 2 < 520 * 520) e = b;
   if (e) { const dx = e.x - P.x, dy = e.y - e.r * 0.5 - (P.y - 24); const l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l, e]; }
   return [P.hx, P.hy, null];
 }

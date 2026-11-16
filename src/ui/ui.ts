@@ -14,7 +14,7 @@ export function h(html: string): HTMLElement {
   const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild as HTMLElement;
 }
 export function openScreen(html: string, cls = 'dim', replace = true): HTMLElement {
-  if (replace) closeAll();
+  if (replace) closeAll(); else if (stack.length) stack[stack.length - 1].classList.add('under');
   const el = document.createElement('div');
   el.className = 'screen ' + cls; el.innerHTML = html;
   root().appendChild(el); stack.push(el);
@@ -22,7 +22,7 @@ export function openScreen(html: string, cls = 'dim', replace = true): HTMLEleme
   return el;
 }
 export function closeTop() {
-  const el = stack.pop(); if (el) el.remove(); sel = null;
+  const el = stack.pop(); if (el) el.remove(); sel = null; if (stack.length) stack[stack.length - 1].classList.remove('under');
   if (!stack.length) input.menu = null;
 }
 export function closeAll() { while (stack.length) stack.pop()!.remove(); sel = null; input.menu = null; }

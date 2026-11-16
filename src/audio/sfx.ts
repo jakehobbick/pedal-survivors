@@ -90,5 +90,7 @@ export const sfx = {
   charge: () => { if (ok('charge', 0.15)) noise(0.3, 0.09, 300, 1, 'bandpass', 0, 1200); },
   fuse: () => { if (ok('fuse', 0.15)) noise(0.6, 0.05, 5000, 2, 'bandpass'); },
   shift: (up: boolean) => { if (ok('shift', 0.03)) { osc('square', up ? 1400 : 900, up ? 1400 : 900, 0.04, 0.05); noise(0.03, 0.06, 4000, 3); } },
+  achieve: () => { if (ok('ach', 0.6)) { [784, 988, 1175, 1568].forEach((f, i) => { osc('triangle', f, f, 0.3, 0.07, i * 0.09); osc('sine', f * 2, f * 2, 0.4, 0.03, i * 0.09); }); } },
+  buy: () => { if (ok('buy', 0.08)) { osc('square', 988, 988, 0.05, 0.05); osc('square', 1318, 1318, 0.05, 0.05, 0.05); osc('square', 1976, 1976, 0.14, 0.05, 0.1); } },
   count: (hi = false) => ok('count', 0.2) && osc('square', hi ? 1320 : 880, hi ? 1320 : 880, hi ? 0.35 : 0.12, 0.09),
 };

@@ -25,7 +25,7 @@ export class Director {
     const w = this.w; if (!this.enabled) return;
     const m = this.minutes(); const I = Math.max(0.3, this.intensity);
     w.enemyHpMult = w.arena.hpMult * (1 + 0.06 * m + 0.0028 * m * m) * (0.85 + 0.25 * I);
-    w.enemyDmgMult = (1 + 0.03 * m) * (this.pressure > 1 ? 1 + (this.pressure - 1) * 0.3 : 1);
+    w.enemyDmgMult = (1 + 0.022 * m) * (this.pressure > 1 ? 1 + (this.pressure - 1) * 0.3 : 1);
     w.enemySpeedMult = 1 + (this.pressure - 1) * 0.25;
     let rate = (0.6 + 0.28 * m) * (0.5 + I * I * 0.6) * this.pressure * this.spawnScale;
     let cap = Math.min(440, 20 + m * 10.5 + I * 60) * this.pressure;

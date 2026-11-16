@@ -1,3 +1,4 @@
+import { save } from './core/save';
 import '@fontsource/bungee/latin-400.css';
 import '@fontsource/rajdhani/latin-600.css';
 import '@fontsource/rajdhani/latin-700.css';
@@ -52,6 +53,7 @@ game.world.reset(ARENA_BY_ID.sakura);
     P.recompute();
   },
   chest(rank = 1) { game.world.pendingChests.push(rank); },
+  get save() { return save; },
 };
 
 if (location.search.includes('gallery')) { setTimeout(() => showGallery(ctx, W, H, DPR), 200); }

@@ -184,3 +184,25 @@ img.card-img { max-width: min(420px, 90vw); border-radius: 14px; box-shadow: 0 1
 #h-sprint .sw { font-size: 64px; font-weight: 700; line-height: 1; } #h-sprint .sw small { font-size: 24px; color: var(--mute); }
 .sbar { height: 22px; border-radius: 11px; background: rgba(255,255,255,.1); overflow: hidden; margin: 6px 0; }
 .sbar i { display: block; height: 100%; width: 100%; background: repeating-linear-gradient(45deg, #9ff0ff 0 12px, #4cc9f0 12px 24px); transition: width .1s; }
+
+/* ---------- meta screens ---------- */
+.metagrid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.card.meta { min-height: 128px; position: relative; }
+.card.meta.poor { opacity: .62; }
+.card.meta.maxed { border-color: rgba(94, 243, 140, .5); }
+.card.meta .pips { display: flex; gap: 4px; margin-top: 6px; clear: both; }
+.card.meta .pips i { flex: 1; height: 7px; border-radius: 4px; background: #2a1c4b; }
+.card.meta .pips i.on { background: linear-gradient(90deg, #ffd166, #ff9f43); box-shadow: 0 0 6px rgba(255, 209, 102, .6); }
+.card.meta .price { position: absolute; top: 10px; right: 12px; font-weight: 800; color: var(--gold); font-family: var(--num); }
+.card.meta.maxed .price { color: #5ef38c; }
+.btn.pink { background: linear-gradient(180deg, #ff7aa5, #d63a6e); }
+.achbar { height: 10px; border-radius: 6px; background: #1b1233; overflow: hidden; margin: 4px 0 12px; }
+.achbar i { display: block; height: 100%; background: linear-gradient(90deg, #ffd166, #ff5d8f); }
+.achgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px; max-height: 62vh; overflow: auto; -webkit-overflow-scrolling: touch; padding: 4px; }
+table.hist { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.hist th { text-align: left; color: var(--mute); font-size: 12px; text-transform: uppercase; padding: 4px 6px; position: sticky; top: 0; background: #140b26; }
+table.hist td { padding: 5px 6px; border-top: 1px solid rgba(255, 255, 255, .06); }
+table.hist tr.sub td { border-top: 0; padding-top: 0; color: #c9b6ff; font-size: 12px; font-style: italic; }
+textarea { background: #140b26; color: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px; font: 12px ui-monospace, monospace; }
+.screen.under { visibility: hidden; }
+.card.meta .ttl { padding-right: 54px; }
