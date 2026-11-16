@@ -217,3 +217,18 @@ body.bossbar #banner { top: 36%; }
   #banner { top: 38%; }
   body.bossbar #banner { top: 44%; }
 }
+
+/* ---------- post-run ---------- */
+.post { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 22px; align-items: start; width: min(1180px, 96vw); }
+.post .postL { position: sticky; top: 0; }
+.post h3 { margin: 14px 0 6px; }
+.stat.big { text-align: center; padding: 12px; margin-bottom: 10px; }
+.stat.big b { font-size: 64px; line-height: 1; }
+.zleg { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: #cfc3ea; }
+.zleg .zl b { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.wlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; margin-top: 10px; }
+.wrow { display: flex; align-items: center; gap: 8px; background: #1b1233; border-radius: 10px; padding: 5px 10px 5px 5px; }
+.wrow img { border-radius: 8px; }
+.wrow span { flex: 1; font-weight: 700; font-size: 14px; } .wrow small { color: var(--gold); font-size: 11px; margin-left: 4px; }
+.wrow b { font-family: var(--num); font-size: 18px; color: #ffb3d1; }
+@media (max-width: 900px) { .post { grid-template-columns: 1fr; } .post .postL { position: static; max-width: 460px; margin: 0 auto; } }

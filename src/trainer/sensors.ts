@@ -41,12 +41,13 @@ export class Recorder {
   c = new Uint8Array(Recorder.CAP);
   hr = new Uint8Array(Recorder.CAP);
   tgt = new Uint16Array(Recorder.CAP); // target watts (0 = none), for share card graph
+  step = new Uint8Array(Recorder.CAP); // workout step index per second → TCX laps
   n = 0; start = Date.now();
   private accum = 0;
   private pSum = 0; private cSum = 0; private hSum = 0; private cnt = 0; private hCnt = 0;
   reset() { this.n = 0; this.accum = 0; this.pSum = this.cSum = this.hSum = this.cnt = this.hCnt = 0; }
   /** call every frame with real (unscaled) dt */
-  tick(dt: number, targetW: number) {
+  tick(dt: number, targetW: number, stepIdx = 0) {
     this.accum += dt;
     this.pSum += sensors.power * dt; this.cSum += sensors.cadence * dt; this.cnt += dt;
     if (sensors.hr > 0) { this.hSum += sensors.hr * dt; this.hCnt += dt; }
@@ -58,7 +59,7 @@ export class Recorder {
         this.p[i] = Math.round(this.cnt ? this.pSum / this.cnt : 0);
         this.c[i] = Math.min(255, Math.round(this.cnt ? this.cSum / this.cnt : 0));
         this.hr[i] = Math.min(255, Math.round(this.hCnt ? this.hSum / this.hCnt : 0));
-        this.tgt[i] = Math.round(targetW);
+        this.tgt[i] = Math.round(targetW); this.step[i] = Math.min(255, stepIdx);
       }
       this.pSum = this.cSum = this.hSum = this.cnt = this.hCnt = 0;
       return true;

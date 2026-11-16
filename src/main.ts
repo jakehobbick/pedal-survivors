@@ -1,3 +1,5 @@
+import { getLastReport } from './meta/progress';
+import { buildTCX, rideFromRecorder } from './export/tcx';
 import { save } from './core/save';
 import '@fontsource/bungee/latin-400.css';
 import '@fontsource/rajdhani/latin-600.css';
@@ -54,6 +56,8 @@ game.world.reset(ARENA_BY_ID.sakura);
   },
   chest(rank = 1) { game.world.pendingChests.push(rank); },
   get save() { return save; },
+  tcx: (notes = 'test') => buildTCX(rideFromRecorder(), notes),
+  lastReport: () => getLastReport(),
 };
 
 if (location.search.includes('gallery')) { setTimeout(() => showGallery(ctx, W, H, DPR), 200); }

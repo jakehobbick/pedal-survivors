@@ -53,6 +53,7 @@ export class World {
   slowMo = 1;      // global enemy time scale (Time Trial ult)
   pendingLevels = 0; pendingChests: number[] = [];
   boss: Enemy | null = null;
+  bossVuln = 1;   // late-fight boss fatigue multiplier
   surgeFn: () => number = () => 0;
   invulnMenu = false;
   bombFlash = 0;
@@ -61,7 +62,7 @@ export class World {
     this.enemies.clear(); this.projs.clear(); this.zones.clear(); this.pickups.clear();
     clearParticles(); clearNumbers();
     this.arena = arena; this.theme = arena.theme; this.t = 0; this.stats = newStats();
-    this.pendingLevels = 0; this.pendingChests = []; this.boss = null; this.slowMo = 1;
+    this.pendingLevels = 0; this.pendingChests = []; this.boss = null; this.bossVuln = 1; this.slowMo = 1;
     this.camX = this.camY = 0;
   }
 
@@ -152,9 +153,10 @@ export class World {
       const dx = sx - e.x, dy = sy - e.y; const l = Math.hypot(dx, dy) || 1;
       if ((dx / l) * e.sx + (dy / l) * e.sy > 0.62) { dmg *= 0.2; crit = 1; if (rng.next() < 0.3) burst(e.x + e.sx * e.r, e.y + e.sy * e.r, 3, '#dfe5ec', 140, 6); }
     }
+    if (e === this.boss && this.bossVuln > 1) dmg *= this.bossVuln;
     dmg = Math.max(1, dmg);
-    e.hp -= dmg; e.flash = 0.12;
-    this.stats.dmgDealt += dmg; if (dmg > this.stats.bestHit) this.stats.bestHit = dmg;
+    const eff = Math.min(dmg, Math.max(0, e.hp)); e.hp -= dmg; e.flash = 0.12;
+    this.stats.dmgDealt += eff; if (dmg > this.stats.bestHit) this.stats.bestHit = dmg;
     if (slot >= 0 && slot < P.weapons.length) P.weapons[slot].dmgDone += dmg;
     P.ultCharge = Math.min(1, P.ultCharge + dmg / (900 + P.level * 90));
     dmgNumber(e.x, e.y - e.r - 6, dmg, crit > 1 ? 1 : 0);

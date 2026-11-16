@@ -28,6 +28,7 @@ import { dbg } from '../ui/debug';
 import { hasScreen } from '../ui/ui';
 import { achEvent } from '../meta/achievements';
 import type { RunUI } from '../ui/runscreens';
+import { setRideSteps } from '../export/tcx';
 
 export interface RunOpts { char: string; arena: string; tpl: string; min: number; stress?: boolean }
 export const game = {
@@ -83,6 +84,7 @@ export function startRun(o: RunOpts) {
   game.state = 'run'; game.paused = false; game.menuOpen = false;
   resetSensorAvg();
   if (game.stress) { wk.steps = [{ kind: 'free', dur: 3600, lo: 0, hi: 0, label: 'STRESS TEST', wave: 'normal', mode: 'gear' }]; wk.total = 3600; D.enabled = false; W.player.invuln = 1e9; }
+  setRideSteps(wk.steps.map((x) => x.label), wk.steps.map((x) => x.kind));
   wk.start();
   showHud(true); showTouch(true);
   music.start(arena.music);
@@ -147,8 +149,8 @@ function spawnBoss() {
   if (!e) return null;
   // HP scales with the build you brought
   const dps = recentDps();
-  e.maxHp = e.hp = Math.max(e.def.hp * W.arena.hpMult * (0.4 + game.opts!.min / 100), dps * 17);
-  e.rank = 3; e.shield = 1; W.boss = e;
+  e.maxHp = e.hp = Math.max(e.def.hp * W.arena.hpMult * (0.25 + game.opts!.min / 120), dps * 12);
+  e.rank = 3; e.shield = 1; W.boss = e; W.bossVuln = 1;
   sfx.roar(); shake(14); flash('#ff4d5e', 0.4);
   return e;
 }
@@ -207,6 +209,9 @@ function updateBossSeq(dt: number) {
       banner('THE SHIELD HOLDS', 'Recover 40 s, then sprint again', 2600);
       setErg(0.55);
     }
+  } else if (B.phase === 'fight') {
+    // fatigue: long fights tip in the rider's favour so every build can finish inside the boss window
+    if (B.t > 55) { const was = W.bossVuln; W.bossVuln = 1 + (B.t - 55) * 0.05; if (was === 1) banner('THE BOSS IS FADING', 'It takes more damage every second — finish it!', 2200); }
   } else if (B.phase === 'recover') {
     if (B.t > 40) { B.phase = 'intro'; B.t = 3; setGearMode(gearFor(1.0)); banner('SECOND ATTEMPT', 'Shift up — sprint incoming', 2000); B.attempts++; game.boss.phase = 'intro'; }
   }
@@ -315,8 +320,8 @@ export function updateGame(dt: number) {
   if (game.stress) stressFill();
   dmgHistT += wdt; if (dmgHistT >= 10) { dmgHistT = 0; dmgHist.push(W.stats.dmgDealt); if (dmgHist.length > 7) dmgHist.shift(); }
   // ride recording (1 Hz)
-  const tgtW = trainer.mode === 'erg' ? trainer.ergFrac * FTP() : 0;
-  recorder.tick(dt, tgtW);
+  const band = wk.targetBand(); const tgtW = band ? (band[1] >= 9 ? band[0] : (band[0] + band[1]) / 2) * FTP() : 0;
+  recorder.tick(dt, tgtW, wk.idx);
   {
     const b = W.boss || (() => { for (let i = 0; i < W.enemies.n; i++) { const e = W.enemies.items[i]; if (!e.dead && e.rank === 2) return e; } return null; })();
     hudBoss(game.boss.phase, b, game.boss.sprintT, b ? `${BOSSES[b.def.id].title} · ${BOSSES[b.def.id].name}` : '');
