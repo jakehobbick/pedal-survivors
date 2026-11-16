@@ -44,6 +44,14 @@ game.world.reset(ARENA_BY_ID.sakura);
 (window as any).__ps = {
   toggleDebug: () => { settings.debug = !settings.debug; saveSettings(); },
   sensors, sim, trainer, dbg, game, startRun, settings, closeAll,
+  /** debug: set the loadout to exactly these weapons/passives */
+  loadout(ws: [string, number][], ps: [string, number][] = []) {
+    const P = game.world.player; P.weapons = []; P.passives = [];
+    for (const [id, lv] of ws) { const w = P.addWeapon(id); w.lv = lv; w.recompute(); }
+    for (const [id, lv] of ps) P.passives.push({ id, lv });
+    P.recompute();
+  },
+  chest(rank = 1) { game.world.pendingChests.push(rank); },
 };
 
 if (location.search.includes('gallery')) { setTimeout(() => showGallery(ctx, W, H, DPR), 200); }

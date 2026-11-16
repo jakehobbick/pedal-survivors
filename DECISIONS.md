@@ -46,3 +46,10 @@ Running log of judgment calls made during the autonomous build. Newest milestone
 - **Mini-bosses** spawn at the start of steps flagged `mini` (mid-set), one per run length tier, in the arena's preferred order.
 - **Arena hazards** start after minute 2 (every 28–48 s, not in calm/boss waves): Sakura rockslides, Neon laser grids, Volcano geysers that leave burning ground. They're telegraphed and they hurt enemies too.
 - **Physics sub-steps:** the loop sub-steps at ≤34 ms so the debug time-scale (used for bot play-tests at 8×) doesn't break collisions or pickups.
+
+## Milestone 5 — full content
+
+- **11 weapons, 11 evolutions, 13 passives** (`src/data/weapons.ts`). Every base weapon has an evolution (spec asked for ≥6). Evolution rule matches Vampire Survivors: weapon at max level (6) + its paired passive at any level, then the next chest evolves it. Pairs: Darts+Cadence Sensor→Presta Storm, Shuriken+Aero Helmet→Wheel of Ruin, Whip+Chain Lube→Derailleur Reaper, Cannon+CO₂→Howitzer, Bell+Chamois→Cathedral Chime, Bidon+Electrolytes→Tsunami, Drone+Power Meter→Domestique Swarm, Lightning+Carbon Rims→Thunder Tubular, Boomerang+Lucky Socks→Grand Tour, Laser+Caffeine Gel→Hyper Beam, Trail+Sealant→Inferno Draft. All 11 verified by `scripts/evo.py`.
+- **10 enemy behaviours**: swarm, chase, heavy chase, charger, ranged, splitter (+ children), shielded (frontal shield blocks projectiles), exploder, phaser (blinks in and out), healer. Elites are any enemy with an elite flag (bigger, gold outline, more HP, guaranteed chest chance).
+- **3 mini-bosses and 3 final bosses**, one of each per arena, each with its own attack set (slam, rock fall, spiral bullets, dashes, laser sweeps, summons, shock rings, charges).
+- Canvas `ellipse()` throws on negative radii in Safari/WebKit. Every zone draw now clamps radii (found by a crash during shrinking telegraphs).

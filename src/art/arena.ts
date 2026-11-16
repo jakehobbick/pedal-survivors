@@ -39,10 +39,10 @@ function sakuraTile(): HTMLCanvasElement {
 }
 function neonTile(): HTMLCanvasElement {
   const N = 512; const [c, g] = mkCanvas(N, N); const R = seeded(29);
-  g.fillStyle = '#16122a'; g.fillRect(0, 0, N, N);
-  // asphalt texture
-  g.drawImage(noiseTex(256, 9, 8, 0.6, false), 0, 0, N, N);
-  g.globalAlpha = 0.6; g.drawImage(noiseTex(256, 4, 40, 0.8), 0, 0, N, N); g.globalAlpha = 1;
+  g.fillStyle = lin(g, 0, 0, N, N, [[0, '#1d1834'], [0.5, '#211b3b'], [1, '#1a1530']]); g.fillRect(0, 0, N, N);
+  // asphalt texture: soft large-scale mottling + fine aggregate
+  g.globalAlpha = 0.5; g.drawImage(noiseTex(256, 4, 64, 0.7), 0, 0, N, N); g.globalAlpha = 1;
+  for (let i = 0; i < 2600; i++) { const v = R(); g.fillStyle = v < 0.5 ? 'rgba(0,0,0,.22)' : 'rgba(170,150,230,.08)'; g.fillRect(R() * N, R() * N, 1.2, 1.2); }
   // panel grid (sidewalk slabs)
   g.strokeStyle = 'rgba(120,90,200,.18)'; g.lineWidth = 2;
   for (let i = 0; i <= N; i += 128) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, N); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(N, i); g.stroke(); }

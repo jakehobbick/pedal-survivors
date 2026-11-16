@@ -205,8 +205,8 @@ function drawZoneUnder(g: CanvasRenderingContext2D, z: import('./entities').Zone
       g.globalAlpha = a * 0.75;
       const gr = g.createRadialGradient(z.x, z.y, 2, z.x, z.y, z.r);
       gr.addColorStop(0, 'rgba(180,255,210,.75)'); gr.addColorStop(0.7, z.special ? 'rgba(40,200,255,.55)' : 'rgba(60,230,130,.5)'); gr.addColorStop(1, 'rgba(60,230,130,0)');
-      g.fillStyle = gr; g.beginPath(); g.ellipse(z.x, z.y, z.r, z.r * 0.62, 0, 0, 7); g.fill();
-      g.strokeStyle = 'rgba(220,255,240,.5)'; g.lineWidth = 1.5; const rr = (now * 0.04 + z.x) % z.r; g.beginPath(); g.ellipse(z.x, z.y, rr, rr * 0.62, 0, 0, 7); g.stroke();
+      g.fillStyle = gr; g.beginPath(); g.ellipse(z.x, z.y, Math.max(0.1, z.r), Math.max(0.1, z.r * 0.62), 0, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(220,255,240,.5)'; g.lineWidth = 1.5; const rr = Math.abs(now * 0.04 + z.x) % Math.max(1, z.r) + 0.1; g.beginPath(); g.ellipse(z.x, z.y, Math.max(0.1, rr), Math.max(0.1, rr * 0.62), 0, 0, 7); g.stroke();
       g.globalAlpha = 1; break;
     }
     case ZK.FIRE: {
@@ -216,16 +216,16 @@ function drawZoneUnder(g: CanvasRenderingContext2D, z: import('./entities').Zone
       g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; break;
     }
     case ZK.TELEGRAPH: {
-      const k = 1 - Math.max(0, z.delay) / (z.max || 1);
-      g.fillStyle = 'rgba(255,40,60,.16)'; g.beginPath(); g.ellipse(z.x, z.y, z.r, z.r * 0.7, 0, 0, 7); g.fill();
-      g.fillStyle = 'rgba(255,40,60,.35)'; g.beginPath(); g.ellipse(z.x, z.y, z.r * k, z.r * 0.7 * k, 0, 0, 7); g.fill();
-      g.strokeStyle = 'rgba(255,90,90,.9)'; g.lineWidth = 2.5; g.beginPath(); g.ellipse(z.x, z.y, z.r, z.r * 0.7, 0, 0, 7); g.stroke();
+      const k = Math.max(0.01, Math.min(1, 1 - Math.max(0, z.delay) / (z.max || 1)));
+      g.fillStyle = 'rgba(255,40,60,.16)'; g.beginPath(); g.ellipse(z.x, z.y, Math.max(0.1, z.r), Math.max(0.1, z.r * 0.7), 0, 0, 7); g.fill();
+      g.fillStyle = 'rgba(255,40,60,.35)'; g.beginPath(); g.ellipse(z.x, z.y, Math.max(0.1, z.r * k), Math.max(0.1, z.r * 0.7 * k), 0, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(255,90,90,.9)'; g.lineWidth = 2.5; g.beginPath(); g.ellipse(z.x, z.y, Math.max(0.1, z.r), Math.max(0.1, z.r * 0.7), 0, 0, 7); g.stroke();
       break;
     }
     case ZK.HAZARD_PATCH: {
       g.globalAlpha = a * 0.8;
       const gr = g.createRadialGradient(z.x, z.y, 2, z.x, z.y, z.r);
-      gr.addColorStop(0, z.col); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.beginPath(); g.ellipse(z.x, z.y, z.r, z.r * 0.65, 0, 0, 7); g.fill(); g.globalAlpha = 1; break;
+      gr.addColorStop(0, z.col); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.beginPath(); g.ellipse(z.x, z.y, Math.max(0.1, z.r), Math.max(0.1, z.r * 0.65), 0, 0, 7); g.fill(); g.globalAlpha = 1; break;
     }
     case ZK.LASER_LINE: {
       const k = z.delay > 0 ? 1 - z.delay / z.max : 1;
@@ -241,7 +241,7 @@ function drawZoneOver(g: CanvasRenderingContext2D, z: import('./entities').Zone,
     case ZK.RING: {
       g.globalCompositeOperation = 'lighter';
       g.strokeStyle = z.col; g.globalAlpha = Math.max(0, 1 - t) * 0.9; g.lineWidth = 10 * (1 - t) + 2;
-      g.beginPath(); g.ellipse(z.x, z.y, z.r, z.r * 0.8, 0, 0, 7); g.stroke();
+      g.beginPath(); g.ellipse(z.x, z.y, Math.max(0.1, z.r), Math.max(0.1, z.r * 0.8), 0, 0, 7); g.stroke();
       g.globalAlpha = Math.max(0, 1 - t) * 0.25; g.fillStyle = z.col; g.fill();
       g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; break;
     }
@@ -278,11 +278,11 @@ function drawZoneOver(g: CanvasRenderingContext2D, z: import('./entities').Zone,
     case ZK.BLAST: {
       g.globalCompositeOperation = 'lighter';
       g.globalAlpha = Math.max(0, 1 - t) * 0.8; g.drawImage(tintedGlow(z.col), z.x - z.r * 1.3, z.y - z.r * 1.3, z.r * 2.6, z.r * 2.6);
-      g.strokeStyle = z.col; g.lineWidth = 6 * (1 - t); g.beginPath(); g.ellipse(z.x, z.y, z.r * (0.4 + t * 0.8), z.r * (0.3 + t * 0.6), 0, 0, 7); g.stroke();
+      g.strokeStyle = z.col; g.lineWidth = 6 * (1 - t); g.beginPath(); g.ellipse(z.x, z.y, Math.max(0.1, z.r * (0.4 + t * 0.8)), Math.max(0.1, z.r * (0.3 + t * 0.6)), 0, 0, 7); g.stroke();
       g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; break;
     }
     case ZK.SHOCK: {
-      g.strokeStyle = `rgba(255,120,80,${Math.max(0, 1 - t)})`; g.lineWidth = 8 * (1 - t) + 2; g.beginPath(); g.ellipse(z.x, z.y, z.r, z.r * 0.65, 0, 0, 7); g.stroke(); break;
+      g.strokeStyle = `rgba(255,120,80,${Math.max(0, 1 - t)})`; g.lineWidth = 8 * (1 - t) + 2; g.beginPath(); g.ellipse(z.x, z.y, Math.max(0.1, z.r), Math.max(0.1, z.r * 0.65), 0, 0, 7); g.stroke(); break;
     }
     case ZK.LASER_LINE: {
       if (z.delay > 0) break;
