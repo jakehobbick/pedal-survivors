@@ -4,8 +4,8 @@ import { game, endRun } from '../game/game';
 import { rollChoices, applyChoice, evolutionsReady, evoChoice, evolve, Choice } from '../game/upgrades';
 import { iconURL } from '../art/icons';
 import { WEAPON_BY_ID } from '../data/weapons';
-import { sfx } from '../audio/sfx';
-import { settings } from '../core/settings';
+import { sfx, applyVolumes } from '../audio/sfx';
+import { settings, saveSettings } from '../core/settings';
 import { burst, ring, flash } from '../game/fx';
 import { openSettings } from './screens';
 import { openPostRun } from './postrun';
@@ -124,7 +124,16 @@ export const runUI: RunUI = {
         <button class="btn sec" id="pa-set">⚙ Settings</button>
         <button class="btn sec" id="pa-tcx">⬇ Save ride so far (.tcx)</button>
         <button class="btn sec" id="pa-end">🏁 End run now</button>
+        <div class="panel" style="padding:10px 14px;margin-top:6px">
+          <div class="field"><label>🔊 Sound</label><button class="btn sec sm" id="pa-mute">${settings.muted ? '🔇 Muted' : '🔊 On'}</button></div>
+          <div class="field"><label>Music</label><input type="range" id="pa-mus" min="0" max="1" step="0.05" value="${settings.music}"></div>
+          <div class="field"><label>Effects</label><input type="range" id="pa-sfx" min="0" max="1" step="0.05" value="${settings.sfx}"></div>
+          <div class="field"><label>Screen shake</label><button class="btn sec sm" id="pa-shk">${settings.shake ? 'On' : 'Off'}</button></div>
+        </div>
       </div>`, 'glass');
+    const pm = el.querySelector<HTMLButtonElement>('#pa-mute')!; pm.onclick = () => { settings.muted = !settings.muted; applyVolumes(); saveSettings(); pm.textContent = settings.muted ? '🔇 Muted' : '🔊 On'; };
+    const ps = el.querySelector<HTMLButtonElement>('#pa-shk')!; ps.onclick = () => { settings.shake = !settings.shake; saveSettings(); ps.textContent = settings.shake ? 'On' : 'Off'; };
+    for (const [id, k] of [['pa-mus', 'music'], ['pa-sfx', 'sfx']] as const) el.querySelector<HTMLInputElement>('#' + id)!.oninput = (e) => { (settings as any)[k] = +(e.target as HTMLInputElement).value; applyVolumes(); saveSettings(); };
     el.querySelector<HTMLButtonElement>('#pa-res')!.onclick = () => { closeAll(); };
     el.querySelector<HTMLButtonElement>('#pa-set')!.onclick = () => openSettings(true);
     el.querySelector<HTMLButtonElement>('#pa-tcx')!.onclick = () => exportRideNow();

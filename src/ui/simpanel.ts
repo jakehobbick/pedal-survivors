@@ -2,7 +2,9 @@
 import { sim } from '../trainer/sim';
 import { sensors } from '../trainer/sensors';
 import { trainer } from '../trainer/control';
-import { FTP } from '../core/settings';
+import { FTP, settings, saveSettings } from '../core/settings';
+import { applyVolumes } from '../audio/sfx';
+import { toast } from './ui';
 import { input } from '../core/input';
 import { dbg } from './debug';
 
@@ -35,6 +37,7 @@ export function initSimPanel() {
     if (e.key === '.' || e.key === '>') { sim.cad = Math.min(160, sim.cad + 5); return true; }
     if (e.key === ',' || e.key === '<') { sim.cad = Math.max(0, sim.cad - 5); return true; }
     if (e.key === 'b' || e.key === 'B') { sim.bot = !sim.bot; return true; }
+    if (e.key === 'm' || e.key === 'M') { settings.muted = !settings.muted; applyVolumes(); saveSettings(); toast(settings.muted ? '🔇 Sound muted (M)' : '🔊 Sound on (M)'); return true; }
     if (e.key === '`' || e.key === '~') { (window as any).__ps?.toggleDebug(); return true; }
     if (dbgKeys && /^[1-6]$/.test(e.key) && e.altKey) { dbg.timeScale = [1, 1, 2, 4, 8, 16, 0.25][+e.key]; return true; }
     return false;

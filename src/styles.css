@@ -206,3 +206,4 @@ table.hist tr.sub td { border-top: 0; padding-top: 0; color: #c9b6ff; font-size:
 textarea { background: #140b26; color: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px; font: 12px ui-monospace, monospace; }
 .screen.under { visibility: hidden; }
 .card.meta .ttl { padding-right: 54px; }
+body.bossbar #banner { top: 36%; }

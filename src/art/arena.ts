@@ -63,13 +63,14 @@ function neonTile(): HTMLCanvasElement {
 }
 function volcanoTile(): HTMLCanvasElement {
   const N = 512; const [c, g] = mkCanvas(N, N); const R = seeded(47);
-  g.fillStyle = '#2a1a1a'; g.fillRect(0, 0, N, N);
-  g.drawImage(noiseTex(256, 21, 24, 0.9), 0, 0, N, N);
+  g.fillStyle = '#4a3631'; g.fillRect(0, 0, N, N);
+  g.globalAlpha = 0.7; g.drawImage(noiseTex(256, 21, 24, 0.9), 0, 0, N, N); g.globalAlpha = 1;
   // basalt plates
   for (let i = 0; i < 70; i++) {
     const x = R() * N, y = R() * N, r = 18 + R() * 34; g.beginPath();
     for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2 + R() * 0.4; g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r * 0.8); }
-    g.closePath(); g.fillStyle = `rgba(${50 + R() * 30},${32 + R() * 15},${30 + R() * 10},.8)`; g.fill(); g.strokeStyle = 'rgba(0,0,0,.5)'; g.lineWidth = 2; g.stroke();
+    g.closePath(); g.fillStyle = `rgba(${84 + R() * 26},${62 + R() * 14},${54 + R() * 10},.75)`; g.fill(); g.strokeStyle = 'rgba(20,8,6,.35)'; g.lineWidth = 2; g.stroke();
+    g.strokeStyle = 'rgba(255,220,190,.08)'; g.lineWidth = 1.5; g.beginPath(); g.arc(x - r * 0.15, y - r * 0.15, r * 0.6, 3.6, 5.2); g.stroke();
   }
   // glowing lava cracks (tile-safe by drawing wrapped)
   const crack = (x: number, y: number) => {
@@ -78,12 +79,12 @@ function volcanoTile(): HTMLCanvasElement {
     for (const dx of [-N, 0, N]) for (const dy of [-N, 0, N]) {
       g.save(); g.translate(dx, dy);
       g.beginPath(); g.moveTo(pts[0], pts[1]); for (let k = 2; k < pts.length; k += 2) g.lineTo(pts[k], pts[k + 1]);
-      g.strokeStyle = 'rgba(255,80,20,.35)'; g.lineWidth = 9; g.stroke();
-      g.strokeStyle = '#ff6a1a'; g.lineWidth = 3; g.stroke(); g.strokeStyle = '#ffe08a'; g.lineWidth = 1; g.stroke();
+      g.strokeStyle = 'rgba(255,80,20,.18)'; g.lineWidth = 8; g.stroke();
+      g.strokeStyle = 'rgba(230,80,20,.75)'; g.lineWidth = 2.2; g.stroke(); g.strokeStyle = 'rgba(255,224,138,.7)'; g.lineWidth = 0.8; g.stroke();
       g.restore();
     }
   };
-  for (let i = 0; i < 7; i++) crack(R() * N, R() * N);
+  for (let i = 0; i < 4; i++) crack(R() * N, R() * N);
   // ash specks
   for (let i = 0; i < 600; i++) { g.fillStyle = `rgba(${180 + R() * 70},${150 + R() * 60},${130},${0.08 + R() * 0.15})`; g.fillRect(R() * N, R() * N, 1.2, 1.2); }
   return c;

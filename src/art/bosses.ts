@@ -119,40 +119,86 @@ function mecha(g: Ctx, p: number, pose: number) {
 /* ---------------- Oni Shogun ---------------- */
 function oni(g: Ctx, p: number, pose: number) {
   const cx = 95, base = 196; const step = Math.sin(p * Math.PI * 2); const bob = Math.abs(step) * 2;
-  const skin = '#d9363e', armor = '#2a1c22', gold = '#e8b84a';
-  // legs with hakama
-  for (const s of [-1, 1]) { g.beginPath(); g.moveTo(cx + s * 8, base - 64 - bob); g.lineTo(cx + s * 40 + (s > 0 ? step : -step) * 6, base - 4); g.lineTo(cx + s * 12, base - 4); g.closePath(); inked(g, lin(g, 0, base - 64, 0, base, [[0, '#4a2a5a'], [1, '#22102b']]), 3); }
-  // torso armor (do)
-  g.beginPath(); g.moveTo(cx - 44, base - 66 - bob); g.lineTo(cx - 50, base - 132 - bob); g.quadraticCurveTo(cx, base - 150 - bob, cx + 50, base - 132 - bob); g.lineTo(cx + 44, base - 66 - bob); g.closePath();
-  inked(g, lin(g, cx - 50, 0, cx + 50, 0, [[0, shade(armor, 40)], [1, shade(armor, -10)]]), 3.4);
+  const skin = '#d9363e', armor = '#2a1c22', gold = '#e8b84a', lace = '#7a1b2a';
+  // tattered war cape behind
+  g.beginPath(); g.moveTo(cx - 46, base - 138 - bob);
+  for (let i = 0; i <= 8; i++) { const x = cx - 58 + i * 14.5; const y = base - 34 + (i % 2 ? -10 : 6) + Math.sin(p * 6.28 + i) * 3; g.lineTo(x, y); }
+  g.lineTo(cx + 46, base - 138 - bob); g.closePath(); inked(g, lin(g, 0, base - 140, 0, base - 30, [[0, '#3a0d16'], [1, '#14060a']]), 3);
+  g.save(); g.clip(); tex(g, 71, 0.4); g.restore();
+  // hakama legs: flared, pleated, striding
+  for (const s2 of [-1, 1]) {
+    const sw = (s2 > 0 ? step : -step) * 7; const top = base - 70 - bob;
+    g.beginPath(); g.moveTo(cx + s2 * 4, top); g.bezierCurveTo(cx + s2 * 34, top + 10, cx + s2 * 40 + sw, base - 30, cx + s2 * 46 + sw, base - 8);
+    g.lineTo(cx + s2 * 10 + sw * 0.4, base - 6); g.quadraticCurveTo(cx + s2 * 6, base - 40, cx + s2 * 4, top); g.closePath();
+    inked(g, lin(g, cx, top, cx + s2 * 46, base, [[0, '#5a3470'], [0.6, '#3a1d4a'], [1, '#1d0d26']]), 3);
+    g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 2; for (let k = 1; k <= 3; k++) { const f = k / 4; line(g, cx + s2 * (4 + 8 * f), top + 6, cx + s2 * (10 + 34 * f) + sw * f, base - 9); }
+    g.strokeStyle = 'rgba(255,255,255,.12)'; line(g, cx + s2 * 14, top + 8, cx + s2 * 20 + sw * 0.5, base - 12);
+    // geta sandal + foot
+    const fx = cx + s2 * 28 + sw * 0.8; ellipse(g, fx, base - 3, 15, 4.5); inked(g, '#2a1a10', 2); g.fillStyle = skin; ellipse(g, fx, base - 8, 9, 4); g.fill(); g.strokeStyle = INK; g.lineWidth = 1.6; g.stroke();
+  }
+  // kusazuri (armored skirt plates)
+  for (let i = -2; i <= 2; i++) {
+    const x = cx + i * 18; const sw = i * 3; g.beginPath(); g.moveTo(x - 10, base - 84 - bob); g.lineTo(x + 10, base - 84 - bob); g.lineTo(x + 11 + sw, base - 54 - bob); g.lineTo(x - 9 + sw, base - 54 - bob); g.closePath();
+    inked(g, lin(g, 0, base - 84, 0, base - 54, [[0, '#9a2a36'], [1, '#4a0f18']]), 2.4);
+    g.strokeStyle = gold; g.lineWidth = 1.6; for (let k = 1; k < 4; k++) line(g, x - 10 + sw * k / 4, base - 84 + k * 8 - bob, x + 10 + sw * k / 4, base - 84 + k * 8 - bob);
+  }
+  // torso armor (do) — curved, laced lamellar
+  g.beginPath(); g.moveTo(cx - 42, base - 82 - bob); g.bezierCurveTo(cx - 56, base - 110 - bob, cx - 54, base - 134 - bob, cx - 44, base - 142 - bob);
+  g.quadraticCurveTo(cx, base - 156 - bob, cx + 44, base - 142 - bob); g.bezierCurveTo(cx + 54, base - 134 - bob, cx + 56, base - 110 - bob, cx + 42, base - 82 - bob); g.closePath();
+  inked(g, lin(g, cx - 50, 0, cx + 50, 0, [[0, shade(armor, 50)], [0.5, shade(armor, 20)], [1, shade(armor, -10)]]), 3.4);
   g.save(); g.clip();
-  for (let i = 0; i < 6; i++) { g.strokeStyle = gold; g.lineWidth = 2; line(g, cx - 52, base - 120 + i * 10 - bob, cx + 52, base - 120 + i * 10 - bob); g.strokeStyle = '#7a1b2a'; g.lineWidth = 6; line(g, cx - 52, base - 115 + i * 10 - bob, cx + 52, base - 115 + i * 10 - bob); }
-  tex(g, 91, 0.5); g.restore();
-  // shoulder plates (sode)
-  for (const s of [-1, 1]) { g.beginPath(); g.moveTo(cx + s * 40, base - 140 - bob); g.lineTo(cx + s * 76, base - 126 - bob); g.lineTo(cx + s * 70, base - 96 - bob); g.lineTo(cx + s * 38, base - 108 - bob); g.closePath(); inked(g, lin(g, 0, base - 140, 0, base - 96, [[0, '#9a2a36'], [1, '#4a0f18']]), 3); g.strokeStyle = gold; g.lineWidth = 2; line(g, cx + s * 42, base - 128 - bob, cx + s * 72, base - 116 - bob); }
+  for (let i = 0; i < 6; i++) { const y = base - 140 + i * 10 - bob; g.strokeStyle = lace; g.lineWidth = 6; g.beginPath(); g.moveTo(cx - 56, y + 4); g.quadraticCurveTo(cx, y + 9, cx + 56, y + 4); g.stroke(); g.strokeStyle = gold; g.lineWidth = 1.8; g.beginPath(); g.moveTo(cx - 56, y); g.quadraticCurveTo(cx, y + 5, cx + 56, y); g.stroke(); }
+  g.fillStyle = 'rgba(255,255,255,.1)'; g.beginPath(); g.ellipse(cx - 18, base - 128 - bob, 14, 26, -0.3, 0, 7); g.fill();
+  tex(g, 91, 0.45); g.restore();
+  // chest crest (mon)
+  circle(g, cx, base - 116 - bob, 11); inked(g, rad(g, cx - 3, base - 119 - bob, 1, 12, [[0, '#fff6c8'], [1, gold]]), 2.2);
+  g.strokeStyle = INK; g.lineWidth = 1.6; for (let k = 0; k < 3; k++) { const a = k * 2.094 - 1.57; line(g, cx, base - 116 - bob, cx + Math.cos(a) * 8, base - 116 - bob + Math.sin(a) * 8); }
+  // obi belt with knot + tassels
+  g.beginPath(); g.roundRect(cx - 46, base - 90 - bob, 92, 12, 4); inked(g, lin(g, 0, base - 90, 0, base - 78, [[0, '#f2d27a'], [1, '#a77a1e']]), 2.4);
+  ellipse(g, cx + 26, base - 84 - bob, 7, 6); inked(g, '#c9962c', 2); for (const s2 of [-1, 1]) { g.strokeStyle = '#c9962c'; g.lineWidth = 3; line(g, cx + 26 + s2 * 3, base - 80 - bob, cx + 26 + s2 * 8 + step * 2, base - 62 - bob); }
+  // shoulder plates (sode), layered
+  for (const s2 of [-1, 1]) {
+    for (let k = 0; k < 3; k++) {
+      const o = k * 9; g.beginPath(); g.moveTo(cx + s2 * (40 + k * 2), base - 146 + o - bob); g.lineTo(cx + s2 * (78 + k * 2), base - 132 + o - bob); g.lineTo(cx + s2 * (74 + k), base - 118 + o - bob); g.lineTo(cx + s2 * (38 + k), base - 130 + o - bob); g.closePath();
+      inked(g, lin(g, 0, base - 146 + o, 0, base - 118 + o, [[0, k === 0 ? '#c23a48' : '#9a2a36'], [1, '#4a0f18']]), 2.4);
+      g.strokeStyle = gold; g.lineWidth = 1.4; line(g, cx + s2 * (42 + k * 2), base - 134 + o - bob, cx + s2 * (74 + k), base - 122 + o - bob);
+    }
+  }
   // head (oni face) + kabuto
-  const hy = base - 160 - bob;
+  const hy = base - 166 - bob;
   circle(g, cx, hy, 26); inked(g, rad(g, cx - 8, hy - 8, 2, 30, [[0, shade(skin, 30)], [1, shade(skin, -40)]]), 3);
+  // furrowed brow + nose
+  g.strokeStyle = shade(skin, -60); g.lineWidth = 2.6; for (const s2 of [-1, 1]) { g.beginPath(); g.moveTo(cx + s2 * 3, hy - 4); g.quadraticCurveTo(cx + s2 * 12, hy - 11, cx + s2 * 21, hy - 6); g.stroke(); }
+  g.lineWidth = 1.6; g.beginPath(); g.moveTo(cx - 3, hy + 6); g.quadraticCurveTo(cx, hy + 10, cx + 3, hy + 6); g.stroke();
   animeEyeBig(g, cx - 10, hy + 2, 1.15, '#ffd166', -1); animeEyeBig(g, cx + 10, hy + 2, 1.15, '#ffd166', 1);
   // fangs + mouth
   g.fillStyle = '#3a0a10'; g.beginPath(); g.moveTo(cx - 14, hy + 14); g.quadraticCurveTo(cx, hy + (pose ? 28 : 20), cx + 14, hy + 14); g.closePath(); g.fill();
-  g.fillStyle = '#fff'; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(cx + s * 11, hy + 14); g.lineTo(cx + s * 8, hy + 23); g.lineTo(cx + s * 6, hy + 14); g.fill(); }
-  // kabuto helmet + horns
+  g.fillStyle = '#fff'; for (const s2 of [-1, 1]) { g.beginPath(); g.moveTo(cx + s2 * 11, hy + 14); g.lineTo(cx + s2 * 8, hy + 23); g.lineTo(cx + s2 * 6, hy + 14); g.fill(); }
+  // menpo cheek guards
+  for (const s2 of [-1, 1]) { g.beginPath(); g.moveTo(cx + s2 * 22, hy + 4); g.quadraticCurveTo(cx + s2 * 30, hy + 18, cx + s2 * 16, hy + 26); g.lineTo(cx + s2 * 18, hy + 14); g.closePath(); inked(g, '#2a1c22', 2); }
+  // kabuto helmet + horns + neck guard
+  g.beginPath(); g.moveTo(cx - 40, hy + 6); g.quadraticCurveTo(cx - 44, hy - 4, cx - 30, hy - 6); g.lineTo(cx + 30, hy - 6); g.quadraticCurveTo(cx + 44, hy - 4, cx + 40, hy + 6); g.lineTo(cx + 26, hy - 2); g.lineTo(cx - 26, hy - 2); g.closePath(); inked(g, '#3a2a32', 2.4);
   g.beginPath(); g.moveTo(cx - 32, hy - 2); g.bezierCurveTo(cx - 34, hy - 36, cx + 34, hy - 36, cx + 32, hy - 2); g.lineTo(cx + 26, hy - 8); g.quadraticCurveTo(cx, hy - 20, cx - 26, hy - 8); g.closePath();
-  inked(g, lin(g, 0, hy - 30, 0, hy, [[0, '#4a3a42'], [1, '#141014']]), 3);
-  for (const s of [-1, 1]) { g.beginPath(); g.moveTo(cx + s * 10, hy - 24); g.bezierCurveTo(cx + s * 40, hy - 40, cx + s * 52, hy - 70, cx + s * 38, hy - 82); g.bezierCurveTo(cx + s * 40, hy - 60, cx + s * 26, hy - 40, cx + s * 4, hy - 30); g.closePath(); inked(g, lin(g, 0, hy - 80, 0, hy - 24, [[0, '#fff6c8'], [1, gold]]), 2.4); }
+  inked(g, lin(g, 0, hy - 30, 0, hy, [[0, '#5a4a52'], [1, '#141014']]), 3);
+  g.strokeStyle = 'rgba(255,255,255,.18)'; g.lineWidth = 2; for (let k = -2; k <= 2; k++) line(g, cx + k * 9, hy - 28 + Math.abs(k) * 3, cx + k * 11, hy - 10);
+  for (const s2 of [-1, 1]) { g.beginPath(); g.moveTo(cx + s2 * 10, hy - 24); g.bezierCurveTo(cx + s2 * 40, hy - 40, cx + s2 * 52, hy - 70, cx + s2 * 38, hy - 82); g.bezierCurveTo(cx + s2 * 40, hy - 60, cx + s2 * 26, hy - 40, cx + s2 * 4, hy - 30); g.closePath(); inked(g, lin(g, 0, hy - 80, 0, hy - 24, [[0, '#fff6c8'], [1, gold]]), 2.4); }
   g.fillStyle = gold; circle(g, cx, hy - 26, 6); g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
   // wild hair
-  g.fillStyle = '#f2f2f2'; for (let i = 0; i < 7; i++) { const a = Math.PI * 0.75 + i * 0.25; g.beginPath(); g.moveTo(cx + Math.cos(a) * 26, hy + Math.sin(a) * 26); g.lineTo(cx + Math.cos(a) * 46, hy + Math.sin(a) * 40 + 10); g.lineTo(cx + Math.cos(a + 0.18) * 26, hy + Math.sin(a + 0.18) * 26); g.fill(); }
-  // kanabo club arm
+  g.fillStyle = '#f2f2f2'; for (let i = 0; i < 9; i++) { const a = Math.PI * 0.7 + i * 0.2; g.beginPath(); g.moveTo(cx + Math.cos(a) * 26, hy + Math.sin(a) * 26); g.lineTo(cx + Math.cos(a) * 48, hy + Math.sin(a) * 40 + 12 + (i % 2) * 6); g.lineTo(cx + Math.cos(a + 0.16) * 26, hy + Math.sin(a + 0.16) * 26); g.fill(); }
+  // kanabo club arm (muscled, clawed)
   const sw = pose ? -2.2 : -0.7 + step * 0.15;
-  g.save(); g.translate(cx + 56, base - 116 - bob); g.rotate(sw);
-  limb(g, [0, 0, 22, 30], 13, skin);
-  g.beginPath(); g.moveTo(16, 30); g.lineTo(30, 30); g.lineTo(40, 120); g.lineTo(6, 120); g.closePath(); inked(g, lin(g, 6, 0, 40, 0, [[0, '#5a3a2a'], [1, '#2a1a10']]), 3);
-  g.fillStyle = '#c0c6d8'; for (let i = 0; i < 6; i++) { circle(g, 12 + (i % 2) * 16, 50 + i * 12, 3.5); g.fill(); g.strokeStyle = INK; g.lineWidth = 1; g.stroke(); }
+  g.save(); g.translate(cx + 58, base - 122 - bob); g.rotate(sw);
+  limb(g, [0, 0, 14, 16, 22, 32], 15, skin);
+  g.beginPath(); g.moveTo(14, 30); g.lineTo(32, 30); g.lineTo(44, 124); g.quadraticCurveTo(24, 132, 2, 124); g.closePath(); inked(g, lin(g, 2, 0, 44, 0, [[0, '#6a4a32'], [0.5, '#4a2f1d'], [1, '#2a1a10']]), 3);
+  g.strokeStyle = 'rgba(255,255,255,.12)'; g.lineWidth = 2; line(g, 12, 40, 8, 118);
+  g.fillStyle = '#c0c6d8'; for (let i = 0; i < 8; i++) { circle(g, 10 + (i % 2) * 20, 46 + i * 10, 3.6); g.fill(); g.strokeStyle = INK; g.lineWidth = 1; g.stroke(); }
+  g.beginPath(); g.roundRect(12, 22, 22, 12, 5); inked(g, skin, 2.2); g.strokeStyle = shade(skin, -60); g.lineWidth = 1.2; for (let k = 1; k < 4; k++) line(g, 12 + k * 5.5, 22, 12 + k * 5.5, 34);
   g.restore();
-  // other arm
-  limb(g, [cx - 56, base - 116 - bob, cx - 70, base - 76 - bob], 12, skin); circle(g, cx - 70, base - 72 - bob, 9); inked(g, skin, 2);
+  // other arm: bracer + clawed fist
+  limb(g, [cx - 58, base - 122 - bob, cx - 66, base - 102 - bob, cx - 72, base - 80 - bob], 13, skin);
+  g.beginPath(); g.roundRect(cx - 80, base - 100 - bob, 16, 14, 3); inked(g, '#2a1c22', 2); g.strokeStyle = gold; g.lineWidth = 1.4; line(g, cx - 79, base - 93 - bob, cx - 65, base - 93 - bob);
+  circle(g, cx - 72, base - 74 - bob, 10); inked(g, rad(g, cx - 75, base - 77 - bob, 1, 11, [[0, shade(skin, 30)], [1, shade(skin, -30)]]), 2.2);
+  g.fillStyle = '#fff6e0'; for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(cx - 79 + k * 6, base - 67 - bob); g.lineTo(cx - 77 + k * 6, base - 60 - bob); g.lineTo(cx - 75 + k * 6, base - 67 - bob); g.fill(); }
 }
 
 /* ---------------- Neon Leviathan ---------------- */

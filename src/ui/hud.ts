@@ -67,7 +67,7 @@ let lastB = 0;
 export function hudBoss(phase: string, e: { name: string; hp: number; maxHp: number; shield: number } | null, sprintT: number, title: string) {
   const now = performance.now(); if (now - lastB < 100) return; lastB = now;
   const show = !!e && phase !== 'dead' && phase !== 'fled';
-  el['h-boss'].style.display = show ? '' : 'none';
+  el['h-boss'].style.display = show ? '' : 'none'; document.body.classList.toggle('bossbar', show);
   if (show && e) {
     el['hb-name'].textContent = title;
     el['hb-hp'].style.width = Math.max(0, e.hp / e.maxHp * 100).toFixed(1) + '%';
